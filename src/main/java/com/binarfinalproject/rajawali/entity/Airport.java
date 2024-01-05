@@ -24,8 +24,8 @@ public class Airport {
 
     private String country;
 
-    @Column(name = "country_code")
-    private String countryCode;
+    @Column(name = "city_code")
+    private String cityCode;
 
     @OneToMany(mappedBy = "sourceAirport")
     private List<Flight> sourceFlights;
