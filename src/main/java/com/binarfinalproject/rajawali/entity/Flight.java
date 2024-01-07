@@ -27,9 +27,22 @@ public class Flight {
     @JoinColumn(name = "destination_airport_id")
     private Airport destinationAirport;
 
+    // butuh entity Airplane, jangan lupa
+    @ManyToOne
+    @JoinColumn(name = "airplane_id")
+    private Airplane airplane;
+
     private LocalDateTime departureDate;
 
     private LocalDateTime arrivalDate;
+
+    private double economySeatsPrice;
+
+    private double businessSeatsPrice;
+
+    private double firstSeatsPrice;
+
+    private double discount;
 
     @OneToMany(mappedBy = "flight")
     private List<Seat> seats;
