@@ -7,29 +7,37 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.SQLRestriction;
+
+import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "flights")
-public class Flight {
-
+@SQLRestriction("deleted_at is null")
+public class Flight extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "source_airport_id")
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "source_airport_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Airport sourceAirport;
 
-    @ManyToOne
-    @JoinColumn(name = "destination_airport_id")
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "destination_airport_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Airport destinationAirport;
 
-    // butuh entity Airplane, jangan lupa
-    @ManyToOne
-    @JoinColumn(name = "airplane_id")
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "airplane_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Airplane airplane;
 
     private LocalDateTime departureDate;
@@ -44,6 +52,6 @@ public class Flight {
 
     private double discount;
 
-    @OneToMany(mappedBy = "flight")
+    @OneToMany(mappedBy = "flight", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Seat> seats;
 }

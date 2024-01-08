@@ -1,19 +1,19 @@
 package com.binarfinalproject.rajawali.dto.flight.request;
 
-import com.binarfinalproject.rajawali.entity.Airplane;
-import com.binarfinalproject.rajawali.entity.Airport;
-
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
+
+import org.hibernate.validator.constraints.UUID;
 
 @Data
 public class UpdateFlightDto {
-    private Optional<Airport> sourceAirport;
-    private Optional<Airport> destinationAirport;
-    private Optional<Airplane> airplane;
+    private Optional<@UUID String> sourceAirportId;
+
+    private Optional<@UUID String> destinationAirportId;
+
+    private Optional<@UUID String> airplaneId;
 
     private Optional<LocalDateTime> departureDate;
 

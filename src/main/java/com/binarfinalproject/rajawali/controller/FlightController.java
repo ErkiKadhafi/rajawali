@@ -36,6 +36,9 @@ public class FlightController {
 
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Flight has successfully created!",
                     newFlight);
+        } catch (ApiException e) {
+            return ResponseMapper.generateResponseFailed(
+                    e.getStatus(), e.getMessage());
         } catch (Exception e) {
             return ResponseMapper.generateResponseFailed(
                     HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -44,7 +47,7 @@ public class FlightController {
 
     @PutMapping("/{flightId}")
     public ResponseEntity<Object> updateFlight(@PathVariable UUID flightId,
-                                               @Valid @RequestBody UpdateFlightDto request) {
+            @Valid @RequestBody UpdateFlightDto request) {
         try {
             ResFlightDto updatedFlight = flightService.updateFlight(flightId, request);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Flight has successfully edited!",
@@ -75,7 +78,6 @@ public class FlightController {
 
     @GetMapping
     public ResponseEntity<Object> getAllFlights(
-            @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer pageSize) {
         try {
@@ -87,11 +89,6 @@ public class FlightController {
             Pageable paginationQueries = PageRequest.of(page, pageSize);
             Specification<Flight> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
-                if (name != null && !name.isEmpty()) {
-                    predicates.add(
-                            criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" +
-                                    name.toLowerCase() + "%"));
-                }
 
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             });

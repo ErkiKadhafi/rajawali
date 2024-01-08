@@ -12,7 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.UUID;
 
 public interface FlightService {
-    ResFlightDto createFlight(CreateFlightDto request);
+    ResFlightDto createFlight(CreateFlightDto request) throws ApiException;
 
     ResFlightDto updateFlight(UUID flightId, UpdateFlightDto request) throws ApiException;
 

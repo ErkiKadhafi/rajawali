@@ -1,21 +1,26 @@
 package com.binarfinalproject.rajawali.dto.flight.request;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+
+import org.hibernate.validator.constraints.UUID;
 
 @Data
 public class CreateFlightDto {
-    @NotNull
-    private UUID sourceAirportId;
+    @NotBlank
+    @UUID
+    private String sourceAirportId;
 
-    @NotNull
-    private UUID destinationAirportId;
+    @NotBlank
+    @UUID
+    private String destinationAirportId;
 
-    @NotNull
-    private UUID airplaneId;
+    @NotBlank
+    @UUID
+    private String airplaneId;
 
     @NotNull
     private LocalDateTime departureDate;
@@ -24,14 +29,14 @@ public class CreateFlightDto {
     private LocalDateTime arrivalDate;
 
     @NotNull
-    private double economySeatsPrice;
+    private Double economySeatsPrice;
 
     @NotNull
-    private double businessSeatsPrice;
+    private Double businessSeatsPrice;
 
     @NotNull
-    private double firstSeatsPrice;
-
+    private Double firstSeatsPrice;
+    
     @NotNull
-    private double discount;
+    private Double discount;
 }

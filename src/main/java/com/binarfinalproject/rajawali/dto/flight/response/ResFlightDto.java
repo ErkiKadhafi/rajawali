@@ -6,15 +6,49 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+class AirportDto {
+    private String id;
+
+    private String name;
+
+    private String country;
+
+    private String city;
+
+    private String cityCode;
+}
+
+@Data
+class AirplaneDto {
+    private String id;
+
+    private String airplaneCode;
+
+}
+
+@Data
 public class ResFlightDto {
     private UUID id;
-    private UUID sourceAirportId;
-    private UUID destinationAirportId;
-    private UUID airplaneId;
+
+    private AirportDto sourceAirport;
+
+    private AirportDto destinationAirport;
+
+    private AirplaneDto airplane;
+
     private LocalDateTime departureDate;
+
     private LocalDateTime arrivalDate;
-    private double economySeatsPrice;
-    private double businessSeatsPrice;
-    private double firstSeatsPrice;
-    private double discount;
+
+    private Double economySeatsPrice;
+
+    private Double businessSeatsPrice;
+
+    private Double firstSeatsPrice;
+
+    private Double discount;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 }
