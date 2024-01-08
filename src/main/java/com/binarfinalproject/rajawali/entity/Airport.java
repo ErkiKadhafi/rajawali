@@ -3,8 +3,11 @@ package com.binarfinalproject.rajawali.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.SQLRestriction;
+
+import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
 
 @Getter
 @Setter
@@ -12,8 +15,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "airports")
-public class Airport {
-
+@SQLRestriction("deleted_at is null")
+public class Airport extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -26,10 +29,4 @@ public class Airport {
 
     @Column(name = "city_code")
     private String cityCode;
-
-    @OneToMany(mappedBy = "sourceAirport")
-    private List<Flight> sourceFlights;
-
-    @OneToMany(mappedBy = "destinationAirport")
-    private List<Flight> destinationFlights;
 }

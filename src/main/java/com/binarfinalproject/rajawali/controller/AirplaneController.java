@@ -2,7 +2,7 @@ package com.binarfinalproject.rajawali.controller;
 
 import com.binarfinalproject.rajawali.dto.airplane.request.UpdateAirplaneDto;
 import com.binarfinalproject.rajawali.dto.airplane.request.CreateAirplaneDto;
-import com.binarfinalproject.rajawali.dto.airplane.response.ResAirPlaneDto;
+import com.binarfinalproject.rajawali.dto.airplane.response.ResAirplaneDto;
 import com.binarfinalproject.rajawali.entity.Airplane;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.service.AirplaneService;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("/v1/airplants")
+@RequestMapping("/v1/airplanes")
 public class AirplaneController {
 
     @Autowired
@@ -34,77 +34,53 @@ public class AirplaneController {
     @Autowired
     ModelMapper modelMapper;
 
-    //create data
     @PostMapping
-    public ResponseEntity<Object> createAirplane(@Valid @RequestBody CreateAirplaneDto request){
+    public ResponseEntity<Object> createAirplane(@Valid @RequestBody CreateAirplaneDto request) {
         try {
-            ResAirPlaneDto response = airplaneService.createAirplane(request);
-            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Successfully Create Data!",
+            ResAirplaneDto response = airplaneService.createAirplane(request);
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Airplane has successfully created!",
                     response);
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
-    //get data
-    @GetMapping("/{id}")
-    public ResponseEntity<Object> getAirplane(@PathVariable UUID id) {
+    @PutMapping("/{airplaneId}")
+    public ResponseEntity<Object> updateAirplane(@PathVariable UUID airplaneId,
+            @Valid @RequestBody UpdateAirplaneDto request) {
         try {
-            Airplane response = airplaneService.findById(id);
-            return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
-                    "Airplane has successfully fatched",
-                    modelMapper.map(response, ResAirPlaneDto.class)
-                    );
-        } catch (ApiException e){
-            return ResponseMapper.generateResponseFailed(
-                    e.getStatus(), e.getMessage()
-            );
-        } catch (Exception e){
-            return ResponseMapper.generateResponseFailed(
-                    HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
-    }
-
-    //update data
-    @PutMapping("/{id}")
-    public ResponseEntity<Object> updateAirplane(@PathVariable UUID id,
-                                             @Valid @RequestBody UpdateAirplaneDto request){
-     try {
-         ResAirPlaneDto response = airplaneService.updateAirplane(id, request);
-         return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Data has successfully edited!",
-                 response);
-     } catch (ApiException e){
-         return ResponseMapper.generateResponseFailed(
-                 e.getStatus(), e.getMessage());
-     } catch (Exception e){
-         return ResponseMapper.generateResponseFailed(
-                 HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-     }
-    }
-
-    //delete data
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteAirplane(@PathVariable UUID id){
-        try {
-            ResAirPlaneDto response = airplaneService.deleteAirplane(id);
-            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Data has successfully deleted!",
+            ResAirplaneDto response = airplaneService.updateAirplane(airplaneId, request);
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Airplane has successfully edited!",
                     response);
-        } catch (ApiException e){
+        } catch (ApiException e) {
             return ResponseMapper.generateResponseFailed(
                     e.getStatus(), e.getMessage());
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseMapper.generateResponseFailed(
                     HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
-    //get All
+    @GetMapping("/{airplaneId}")
+    public ResponseEntity<Object> getAirplaneById(@PathVariable UUID airplaneId) {
+        try {
+            ResAirplaneDto response = airplaneService.getAirplaneById(airplaneId);
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Airplane has successfully fetched!",
+                    response);
+        } catch (ApiException e) {
+            return ResponseMapper.generateResponseFailed(
+                    e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseMapper.generateResponseFailed(
+                    HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
     @GetMapping
-    public ResponseEntity<Object> getAllAirplane(
-            @RequestParam(required = false) String name,
+    public ResponseEntity<Object> getAllAirplanes(
+            @RequestParam(required = false) String airplaneCode,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer pageSize
-    ) {
+            @RequestParam(required = false) Integer pageSize) {
         try {
             if (page == null)
                 page = 0;
@@ -114,17 +90,33 @@ public class AirplaneController {
             Pageable paginationQueries = PageRequest.of(page, pageSize);
             Specification<Airplane> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
-                if (name != null && !name.isEmpty()) {
+                if (airplaneCode != null && !airplaneCode.isEmpty()) {
                     predicates.add(
-                            criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" +
-                                    name.toLowerCase() + "%"));
+                            criteriaBuilder.like(criteriaBuilder.lower(root.get("airplaneCode")), "%" +
+                                    airplaneCode.toLowerCase() + "%"));
                 }
 
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             });
 
-            Page<ResAirPlaneDto> response = airplaneService.getAllAirplane(filterQueries, paginationQueries);
-            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Data has successfully fatched!", response);
+            Page<ResAirplaneDto> response = airplaneService.getAllAirplanes(filterQueries, paginationQueries);
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Airplanes has successfully fetched!",
+                    response);
+        } catch (Exception e) {
+            return ResponseMapper.generateResponseFailed(
+                    HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{airplaneId}")
+    public ResponseEntity<Object> deleteAirplane(@PathVariable UUID airplaneId) {
+        try {
+            ResAirplaneDto response = airplaneService.deleteAirplane(airplaneId);
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Airplane has successfully deleted!",
+                    response);
+        } catch (ApiException e) {
+            return ResponseMapper.generateResponseFailed(
+                    e.getStatus(), e.getMessage());
         } catch (Exception e) {
             return ResponseMapper.generateResponseFailed(
                     HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

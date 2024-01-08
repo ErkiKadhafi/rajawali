@@ -2,7 +2,7 @@ package com.binarfinalproject.rajawali.service.impl;
 
 import com.binarfinalproject.rajawali.dto.airplane.request.UpdateAirplaneDto;
 import com.binarfinalproject.rajawali.dto.airplane.request.CreateAirplaneDto;
-import com.binarfinalproject.rajawali.dto.airplane.response.ResAirPlaneDto;
+import com.binarfinalproject.rajawali.dto.airplane.response.ResAirplaneDto;
 import com.binarfinalproject.rajawali.entity.Airplane;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.repository.AirplaneRepository;
@@ -15,68 +15,88 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class AirplaneServiceImpl implements AirplaneService {
+    @Autowired
+    ModelMapper modelMapper;
 
     @Autowired
-    private AirplaneRepository airplaneRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    AirplaneRepository airplaneRepository;
 
-
-
-    //find by id
     @Override
-    public Airplane findById(UUID id) throws ApiException {
-        return airplaneRepository.findById(id)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
-                        "Airplane with id " + id + " not found"));
-    }
-
-    //create airplane
-    @Override
-    public ResAirPlaneDto createAirplane(CreateAirplaneDto request) {
+    public ResAirplaneDto createAirplane(CreateAirplaneDto request) {
         Airplane airplane = modelMapper.map(request, Airplane.class);
-        return modelMapper.map(airplaneRepository.save(airplane), ResAirPlaneDto.class);
 
+        ResAirplaneDto resAirplaneDto = modelMapper.map(airplaneRepository.save(airplane), ResAirplaneDto.class);
+        return resAirplaneDto;
     }
 
-    //update data
     @Override
-    public ResAirPlaneDto updateAirplane(UUID id, UpdateAirplaneDto request) throws ApiException {
-        var existData = findById(id);
-        if (request.getBusines_seats().isPresent()){
-            existData.setBusines_seats(request.getBusines_seats().get());}
-        if (request.getEconomy_seats().isPresent()){
-            existData.setEconomy_seats(request.getEconomy_seats().get());}
-        if (request.getFirst_seats().isPresent()){
-            existData.setFirst_seats(request.getFirst_seats().get());}
-        if (request.getFirst_seats_per_col().isPresent()){
-            existData.setFirst_seats_per_col(request.getFirst_seats_per_col().get());}
-        if (request.getEconomy_seats_per_col().isPresent()){
-            existData.setEconomy_seats_per_col(request.getEconomy_seats_per_col().get());}
-        if (request.getBusines_seats_per_col().isPresent()){
-            existData.setBusines_seats_per_col(request.getBusines_seats_per_col().get());}
-        return modelMapper.map(airplaneRepository.save(existData), ResAirPlaneDto.class);
+    public ResAirplaneDto updateAirplane(UUID airplaneId, UpdateAirplaneDto request)
+            throws ApiException {
+        Optional<Airplane> airplaneOnDb = airplaneRepository.findById(airplaneId);
 
+        if (airplaneOnDb.isEmpty())
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Airplane with id " + airplaneId + " is not found.");
+
+        Airplane existedAirplane = airplaneOnDb.get();
+        if (request.getAirplaneCode().isPresent())
+            existedAirplane.setAirplaneCode(request.getAirplaneCode().get());
+        if (request.getEconomySeats().isPresent())
+            existedAirplane.setEconomySeats(request.getEconomySeats().get());
+        if (request.getBusinessSeats().isPresent())
+            existedAirplane.setBusinessSeats(request.getBusinessSeats().get());
+        if (request.getFirstSeats().isPresent())
+            existedAirplane.setFirstSeats(request.getFirstSeats().get());
+        if (request.getEconomySeatsPerCol().isPresent())
+            existedAirplane.setEconomySeatsPerCol(request.getEconomySeatsPerCol().get());
+        if (request.getBusinessSeatsPerCol().isPresent())
+            existedAirplane.setBusinessSeatsPerCol(request.getBusinessSeatsPerCol().get());
+        if (request.getFirstSeatsPerCol().isPresent())
+            existedAirplane.setFirstSeatsPerCol(request.getFirstSeatsPerCol().get());
+
+        ResAirplaneDto resAirplaneDto = modelMapper.map(airplaneRepository.save(existedAirplane),
+                ResAirplaneDto.class);
+        return resAirplaneDto;
     }
 
-    //delete data
     @Override
-    public ResAirPlaneDto deleteAirplane(UUID id) throws ApiException {
-        var existData = findById(id);
-        airplaneRepository.delete(existData);
-        return modelMapper.map(existData, ResAirPlaneDto.class);
+    public ResAirplaneDto getAirplaneById(UUID airplaneId) throws ApiException {
+        Optional<Airplane> airplaneOnDb = airplaneRepository.findById(airplaneId);
+
+        if (airplaneOnDb.isEmpty())
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Airplane with id " + airplaneId + " is not found.");
+
+        ResAirplaneDto resAirplaneDto = modelMapper.map(airplaneRepository.save(airplaneOnDb.get()),
+                ResAirplaneDto.class);
+        return resAirplaneDto;
     }
 
-    //get all
     @Override
-    public Page<ResAirPlaneDto> getAllAirplane(Specification<Airplane> filterQueries, Pageable paginationQueries) {
+    public ResAirplaneDto deleteAirplane(UUID airplaneId) throws ApiException {
+        Optional<Airplane> airplaneOnDb = airplaneRepository.findById(airplaneId);
+
+        if (airplaneOnDb.isEmpty())
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Airplane with id " + airplaneId + " is not found.");
+        Airplane deletedAirplane = airplaneOnDb.get();
+        deletedAirplane.setDeletedAt(LocalDateTime.now());
+        ResAirplaneDto resAirplaneDto = modelMapper.map(airplaneRepository.save(deletedAirplane), ResAirplaneDto.class);
+
+        return resAirplaneDto;
+    }
+
+    @Override
+    public Page<ResAirplaneDto> getAllAirplanes(Specification<Airplane> filterQueries, Pageable paginationQueries) {
         Page<Airplane> airplanes = airplaneRepository.findAll(filterQueries, paginationQueries);
-        return airplanes.map(d -> modelMapper.map(d, ResAirPlaneDto.class));
 
+        return airplanes.map(d -> modelMapper.map(d, ResAirplaneDto.class));
     }
 
 }

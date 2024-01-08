@@ -1,20 +1,28 @@
 package com.binarfinalproject.rajawali.dto.airplane.response;
 
-import com.binarfinalproject.rajawali.entity.Flight;
+import java.time.LocalDateTime;
+
 import lombok.Data;
 
-
-import java.util.List;
-import java.util.UUID;
-
 @Data
-public class ResAirPlaneDto {
-    private UUID id;
-    private Integer economy_seats;
-    private Integer busines_seats;
-    private Integer first_seats;
-    private Integer economy_seats_per_col;
-    private Integer busines_seats_per_col;
-    private Integer first_seats_per_col;
-    private List<Flight> flightList;
+public class ResAirplaneDto {
+    private String id;
+
+    private String airplaneCode;
+
+    private Integer economySeats;
+
+    private Integer businessSeats;
+
+    private Integer firstSeats;
+
+    private Integer economySeatsPerCol;
+
+    private Integer businessSeatsPerCol;
+
+    private Integer firstSeatsPerCol;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 }

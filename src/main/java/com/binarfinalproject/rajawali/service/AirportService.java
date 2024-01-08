@@ -6,9 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
-import com.binarfinalproject.rajawali.dto.request.CreateAirportDto;
-import com.binarfinalproject.rajawali.dto.request.UpdateAirportDto;
-import com.binarfinalproject.rajawali.dto.response.ResAirportDto;
+import com.binarfinalproject.rajawali.dto.airport.request.CreateAirportDto;
+import com.binarfinalproject.rajawali.dto.airport.request.UpdateAirportDto;
+import com.binarfinalproject.rajawali.dto.airport.response.ResAirportDto;
 import com.binarfinalproject.rajawali.entity.Airport;
 import com.binarfinalproject.rajawali.exception.ApiException;
 

@@ -1,26 +1,39 @@
 package com.binarfinalproject.rajawali.dto.airplane.request;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NonNull;
 
 @Data
 public class CreateAirplaneDto {
-    @NonNull
-    private Integer economy_seats;
+    @NotBlank
+    @Size(min = 4, message = "must has 4 characters")
+    @Size(max = 4, message = "must has 4 characters")
+    private String airplaneCode;
 
     @NonNull
-    private Integer busines_seats;
+    @Positive
+    private Integer economySeats;
 
     @NonNull
-    private Integer first_seats;
+    @Positive
+    private Integer businessSeats;
 
     @NonNull
-    private Integer economy_seats_per_col;
+    @Positive
+    private Integer firstSeats;
 
     @NonNull
-    private Integer busines_seats_per_col;
+    @Positive
+    private Integer economySeatsPerCol;
 
     @NonNull
-    private Integer first_seats_per_col;
+    @Positive
+    private Integer businessSeatsPerCol;
 
+    @NonNull
+    @Positive
+    private Integer firstSeatsPerCol;
 }

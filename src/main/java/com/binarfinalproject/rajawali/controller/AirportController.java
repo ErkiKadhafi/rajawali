@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.binarfinalproject.rajawali.dto.request.CreateAirportDto;
-import com.binarfinalproject.rajawali.dto.request.UpdateAirportDto;
-import com.binarfinalproject.rajawali.dto.response.ResAirportDto;
+import com.binarfinalproject.rajawali.dto.airport.request.CreateAirportDto;
+import com.binarfinalproject.rajawali.dto.airport.request.UpdateAirportDto;
+import com.binarfinalproject.rajawali.dto.airport.response.ResAirportDto;
 import com.binarfinalproject.rajawali.entity.Airport;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.service.AirportService;

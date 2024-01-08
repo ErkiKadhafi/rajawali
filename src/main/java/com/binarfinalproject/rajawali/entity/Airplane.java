@@ -5,31 +5,39 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.util.List;
 import java.util.UUID;
 
 @Setter
 @Getter
 @NoArgsConstructor
-@Accessors(chain = true)
 @Entity
-@Table(name = "Airplane")
-@SQLDelete(sql = "UPDATE Airplane SET deleted = true WHERE id=?")
-@SQLRestriction("deleted=false")
+@Table(name = "airplanes")
+@SQLRestriction("deleted_at is null")
 public class Airplane extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    private Integer economy_seats;
-    private Integer busines_seats;
-    private Integer first_seats;
-    private Integer economy_seats_per_col;
-    private Integer busines_seats_per_col;
-    private Integer first_seats_per_col;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "airplane")
-    private List<Flight> flightList;
+
+    @Column(name = "airplane_code")
+    private String airplaneCode;
+
+    @Column(name = "economy_seats")
+    private Integer economySeats;
+
+    @Column(name = "business_Seats")
+    private Integer businessSeats;
+
+    @Column(name = "first_seats")
+    private Integer firstSeats;
+
+    @Column(name = "economy_seats_per_col")
+    private Integer economySeatsPerCol;
+
+    @Column(name = "business_seats_per_col")
+    private Integer businessSeatsPerCol;
+
+    @Column(name = "first_seats_per_col")
+    private Integer firstSeatsPerCol;
 }
