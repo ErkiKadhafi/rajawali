@@ -26,5 +26,9 @@ public class Reservation {
     @JoinColumn(name = "seat_id")
     private Seat seat;
 
+    @ManyToOne
+    @JoinColumn(name = "flight_id")
+    private Flight flight;
+
     private LocalDateTime reservationDate;
 }
