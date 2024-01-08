@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-public class AirplaneResponse {
+public class ResAirPlaneDto {
     private UUID id;
     private Integer economy_seats;
     private Integer busines_seats;

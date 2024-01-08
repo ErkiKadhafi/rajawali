@@ -1,11 +1,10 @@
 package com.binarfinalproject.rajawali.dto.airplane.request;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NonNull;
 
 @Data
-public class AirplaneRequest {
+public class CreateAirplaneDto {
     @NonNull
     private Integer economy_seats;
 

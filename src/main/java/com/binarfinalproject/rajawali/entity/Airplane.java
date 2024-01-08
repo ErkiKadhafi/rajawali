@@ -1,13 +1,13 @@
 package com.binarfinalproject.rajawali.entity;
 
-import com.binarfinalproject.rajawali.config.auditModel.AuditModel;
+import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "Airplane")
 @SQLDelete(sql = "UPDATE Airplane SET deleted = true WHERE id=?")
-@Where(clause = "deleted=false")
+@SQLRestriction("deleted=false")
 public class Airplane extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -32,9 +32,4 @@ public class Airplane extends AuditModel {
     private Integer first_seats_per_col;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "airplane")
     private List<Flight> flightList;
-
-
-
-
-
 }

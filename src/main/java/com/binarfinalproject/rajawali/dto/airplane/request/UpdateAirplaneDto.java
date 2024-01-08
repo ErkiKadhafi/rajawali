@@ -1,12 +1,11 @@
 package com.binarfinalproject.rajawali.dto.airplane.request;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.Optional;
 
 @Data
-public class AirPlaneEditRequest {
+public class UpdateAirplaneDto {
     private Optional<Integer> economy_seats;
     private Optional<Integer> busines_seats;
     private Optional<Integer> first_seats;

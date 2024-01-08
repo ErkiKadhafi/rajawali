@@ -1,14 +1,12 @@
 package com.binarfinalproject.rajawali.service.impl;
 
-import com.binarfinalproject.rajawali.dto.airplane.request.AirPlaneEditRequest;
-import com.binarfinalproject.rajawali.dto.airplane.request.AirplaneRequest;
-import com.binarfinalproject.rajawali.dto.airplane.response.AirplaneResponse;
-import com.binarfinalproject.rajawali.dto.response.ResAirportDto;
+import com.binarfinalproject.rajawali.dto.airplane.request.UpdateAirplaneDto;
+import com.binarfinalproject.rajawali.dto.airplane.request.CreateAirplaneDto;
+import com.binarfinalproject.rajawali.dto.airplane.response.ResAirPlaneDto;
 import com.binarfinalproject.rajawali.entity.Airplane;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.repository.AirplaneRepository;
 import com.binarfinalproject.rajawali.service.AirplaneService;
-import lombok.SneakyThrows;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,25 +15,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class AirplaneServiceImpl implements AirplaneService {
 
-    private final AirplaneRepository airplaneRepository;
-    private final ModelMapper modelMapper;
-
-    //constructor injection
     @Autowired
-    private AirplaneServiceImpl(AirplaneRepository airplaneRepository,
-                                ModelMapper modelMapper){
-        this.airplaneRepository = airplaneRepository;
-        this.modelMapper = modelMapper;
-    }
+    private AirplaneRepository airplaneRepository;
+    @Autowired
+    private ModelMapper modelMapper;
+
 
 
     //find by id
@@ -48,15 +37,15 @@ public class AirplaneServiceImpl implements AirplaneService {
 
     //create airplane
     @Override
-    public AirplaneResponse createData(AirplaneRequest request) {
+    public ResAirPlaneDto createAirplane(CreateAirplaneDto request) {
         Airplane airplane = modelMapper.map(request, Airplane.class);
-        AirplaneResponse response = modelMapper.map(airplaneRepository.save(airplane), AirplaneResponse.class);
-        return response;
+        return modelMapper.map(airplaneRepository.save(airplane), ResAirPlaneDto.class);
+
     }
 
     //update data
     @Override
-    public AirplaneResponse updateData(UUID id, AirPlaneEditRequest request) throws ApiException {
+    public ResAirPlaneDto updateAirplane(UUID id, UpdateAirplaneDto request) throws ApiException {
         var existData = findById(id);
         if (request.getBusines_seats().isPresent()){
             existData.setBusines_seats(request.getBusines_seats().get());}
@@ -70,24 +59,24 @@ public class AirplaneServiceImpl implements AirplaneService {
             existData.setEconomy_seats_per_col(request.getEconomy_seats_per_col().get());}
         if (request.getBusines_seats_per_col().isPresent()){
             existData.setBusines_seats_per_col(request.getBusines_seats_per_col().get());}
-        AirplaneResponse response = modelMapper.map(airplaneRepository.save(existData), AirplaneResponse.class);
-        return response;
+        return modelMapper.map(airplaneRepository.save(existData), ResAirPlaneDto.class);
+
     }
 
     //delete data
     @Override
-    public AirplaneResponse deleteData(UUID id) throws ApiException {
+    public ResAirPlaneDto deleteAirplane(UUID id) throws ApiException {
         var existData = findById(id);
         airplaneRepository.delete(existData);
-        return modelMapper.map(existData, AirplaneResponse.class);
+        return modelMapper.map(existData, ResAirPlaneDto.class);
     }
 
     //get all
     @Override
-    public Page<AirplaneResponse> getAllData(Specification<Airplane> filterQueries, Pageable paginationQueries) {
+    public Page<ResAirPlaneDto> getAllAirplane(Specification<Airplane> filterQueries, Pageable paginationQueries) {
         Page<Airplane> airplanes = airplaneRepository.findAll(filterQueries, paginationQueries);
-        Page<AirplaneResponse> response = airplanes.map(d -> modelMapper.map(d, AirplaneResponse.class));
-        return response;
+        return airplanes.map(d -> modelMapper.map(d, ResAirPlaneDto.class));
+
     }
 
 }

@@ -1,16 +1,14 @@
 package com.binarfinalproject.rajawali.controller;
 
-import com.binarfinalproject.rajawali.dto.airplane.request.AirPlaneEditRequest;
-import com.binarfinalproject.rajawali.dto.airplane.request.AirplaneRequest;
-import com.binarfinalproject.rajawali.dto.airplane.response.AirplaneResponse;
+import com.binarfinalproject.rajawali.dto.airplane.request.UpdateAirplaneDto;
+import com.binarfinalproject.rajawali.dto.airplane.request.CreateAirplaneDto;
+import com.binarfinalproject.rajawali.dto.airplane.response.ResAirPlaneDto;
 import com.binarfinalproject.rajawali.entity.Airplane;
-import com.binarfinalproject.rajawali.entity.Airport;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.service.AirplaneService;
 import com.binarfinalproject.rajawali.util.ResponseMapper;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
-import jakarta.websocket.OnClose;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -38,9 +36,9 @@ public class AirplaneController {
 
     //create data
     @PostMapping
-    public ResponseEntity<Object> createData(@Valid @RequestBody AirplaneRequest request){
+    public ResponseEntity<Object> createAirplane(@Valid @RequestBody CreateAirplaneDto request){
         try {
-            AirplaneResponse response = airplaneService.createData(request);
+            ResAirPlaneDto response = airplaneService.createAirplane(request);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Successfully Create Data!",
                     response);
         } catch (Exception e){
@@ -50,12 +48,12 @@ public class AirplaneController {
 
     //get data
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getData(@PathVariable UUID id) throws ApiException {
+    public ResponseEntity<Object> getAirplane(@PathVariable UUID id) {
         try {
             Airplane response = airplaneService.findById(id);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
                     "Airplane has successfully fatched",
-                    modelMapper.map(response, AirplaneResponse.class)
+                    modelMapper.map(response, ResAirPlaneDto.class)
                     );
         } catch (ApiException e){
             return ResponseMapper.generateResponseFailed(
@@ -69,10 +67,10 @@ public class AirplaneController {
 
     //update data
     @PutMapping("/{id}")
-    public ResponseEntity<Object> updateData(@PathVariable UUID id,
-                                             @Valid @RequestBody AirPlaneEditRequest request) throws ApiException{
+    public ResponseEntity<Object> updateAirplane(@PathVariable UUID id,
+                                             @Valid @RequestBody UpdateAirplaneDto request){
      try {
-         AirplaneResponse response = airplaneService.updateData(id, request);
+         ResAirPlaneDto response = airplaneService.updateAirplane(id, request);
          return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Data has successfully edited!",
                  response);
      } catch (ApiException e){
@@ -86,9 +84,9 @@ public class AirplaneController {
 
     //delete data
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteData(@PathVariable UUID id) throws ApiException{
+    public ResponseEntity<Object> deleteAirplane(@PathVariable UUID id){
         try {
-            AirplaneResponse response = airplaneService.deleteData(id);
+            ResAirPlaneDto response = airplaneService.deleteAirplane(id);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Data has successfully deleted!",
                     response);
         } catch (ApiException e){
@@ -102,7 +100,7 @@ public class AirplaneController {
 
     //get All
     @GetMapping
-    public ResponseEntity<Object> getAllData(
+    public ResponseEntity<Object> getAllAirplane(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer pageSize
@@ -125,7 +123,7 @@ public class AirplaneController {
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             });
 
-            Page<AirplaneResponse> response = airplaneService.getAllData(filterQueries, paginationQueries);
+            Page<ResAirPlaneDto> response = airplaneService.getAllAirplane(filterQueries, paginationQueries);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Data has successfully fatched!", response);
         } catch (Exception e) {
             return ResponseMapper.generateResponseFailed(

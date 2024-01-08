@@ -1,4 +1,4 @@
-package com.binarfinalproject.rajawali.config.auditModel;
+package com.binarfinalproject.rajawali.entity.auditModel;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,6 +32,5 @@ public abstract class AuditModel implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "deleted_at")
-    @UpdateTimestamp
     private LocalDateTime deletedAt;
 }
