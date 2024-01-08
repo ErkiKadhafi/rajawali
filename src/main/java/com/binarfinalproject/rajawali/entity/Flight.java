@@ -27,6 +27,10 @@ public class Flight {
     @JoinColumn(name = "destination_airport_id")
     private Airport destinationAirport;
 
+    @ManyToOne
+    @JoinColumn(name = "airplane_id")
+    private Airplane airplane;
+
     private LocalDateTime departureDate;
 
     private LocalDateTime arrivalDate;
