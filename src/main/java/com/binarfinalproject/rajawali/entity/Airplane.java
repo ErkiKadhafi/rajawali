@@ -5,8 +5,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.util.List;
 import java.util.UUID;
 
 @Setter
@@ -14,7 +17,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "airplanes")
-@SQLRestriction("deleted_at is null")
+@SQLDelete(sql = "UPDATE airplanes SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted=false")
 public class Airplane extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -40,4 +44,7 @@ public class Airplane extends AuditModel {
 
     @Column(name = "first_seats_per_col")
     private Integer firstSeatsPerCol;
+
+    @OneToMany(mappedBy = "airplane", fetch = FetchType.LAZY)
+    private List<Seat> seats;
 }

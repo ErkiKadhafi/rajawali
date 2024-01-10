@@ -137,7 +137,9 @@ public class FlightServiceImpl implements FlightService {
 
         Flight deletedFlight = flightOnDb.get();
         deletedFlight.setDeletedAt(LocalDateTime.now());
-        ResFlightDto resFlightDto = modelMapper.map(flightRepository.save(deletedFlight), ResFlightDto.class);
+        flightRepository.save(deletedFlight);
+        flightRepository.delete(deletedFlight);
+        ResFlightDto resFlightDto = modelMapper.map(deletedFlight, ResFlightDto.class);
 
         return resFlightDto;
     }

@@ -81,7 +81,10 @@ public class AirportServiceImpl implements AirportService {
 
         Airport deletedAirport = airportOnDb.get();
         deletedAirport.setDeletedAt(LocalDateTime.now());
-        ResAirportDto resAirportDto = modelMapper.map(airportRepository.save(deletedAirport), ResAirportDto.class);
+        airportRepository.save(deletedAirport);
+        airportRepository.delete(deletedAirport);
+
+        ResAirportDto resAirportDto = modelMapper.map(deletedAirport, ResAirportDto.class);
 
         return resAirportDto;
     }
@@ -93,5 +96,4 @@ public class AirportServiceImpl implements AirportService {
                 .map(productEntity -> modelMapper.map(productEntity, ResAirportDto.class));
         return productsDto;
     }
-
 }

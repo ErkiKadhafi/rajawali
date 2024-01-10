@@ -40,6 +40,9 @@ public class AirplaneController {
             ResAirplaneDto response = airplaneService.createAirplane(request);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Airplane has successfully created!",
                     response);
+        } catch (ApiException e) {
+            return ResponseMapper.generateResponseFailed(
+                    e.getStatus(), e.getMessage());
         } catch (Exception e) {
             return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }

@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.util.UUID;
 
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
@@ -15,7 +16,8 @@ import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
 @AllArgsConstructor
 @Entity
 @Table(name = "airports")
-@SQLRestriction("deleted_at is null")
+@SQLDelete(sql = "UPDATE airports SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted=false")
 public class Airport extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

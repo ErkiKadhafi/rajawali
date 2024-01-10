@@ -4,8 +4,10 @@ import com.binarfinalproject.rajawali.dto.airplane.request.UpdateAirplaneDto;
 import com.binarfinalproject.rajawali.dto.airplane.request.CreateAirplaneDto;
 import com.binarfinalproject.rajawali.dto.airplane.response.ResAirplaneDto;
 import com.binarfinalproject.rajawali.entity.Airplane;
+import com.binarfinalproject.rajawali.entity.Seat;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.repository.AirplaneRepository;
+import com.binarfinalproject.rajawali.repository.SeatRepository;
 import com.binarfinalproject.rajawali.service.AirplaneService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,11 +31,35 @@ public class AirplaneServiceImpl implements AirplaneService {
     @Autowired
     AirplaneRepository airplaneRepository;
 
-    @Override
-    public ResAirplaneDto createAirplane(CreateAirplaneDto request) {
-        Airplane airplane = modelMapper.map(request, Airplane.class);
+    @Autowired
+    SeatRepository seatRepository;
 
-        ResAirplaneDto resAirplaneDto = modelMapper.map(airplaneRepository.save(airplane), ResAirplaneDto.class);
+    @Override
+    public ResAirplaneDto createAirplane(CreateAirplaneDto request) throws ApiException {
+        Optional<Airplane> airplaneOnDb = airplaneRepository.findByAirplaneCode(request.getAirplaneCode());
+
+        if (airplaneOnDb.isPresent())
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Airplane with code " + request.getAirplaneCode() + " is already exist.");
+
+        Airplane airplane = modelMapper.map(request, Airplane.class);
+        Airplane newAirplane = airplaneRepository.save(airplane);
+        ResAirplaneDto resAirplaneDto = modelMapper.map(newAirplane, ResAirplaneDto.class);
+
+        seatRepository.saveAll(generateSeats(airplane, Seat.ClassType.FIRST,
+                0,
+                request.getFirstSeats(),
+                request.getFirstSeatsPerCol()));
+        seatRepository.saveAll(generateSeats(airplane, Seat.ClassType.BUSINESS,
+                request.getFirstSeats() / (request.getFirstSeatsPerCol() * 2),
+                request.getBusinessSeats(),
+                request.getBusinessSeatsPerCol()));
+        seatRepository.saveAll(generateSeats(newAirplane, Seat.ClassType.ECONOMY,
+                (request.getFirstSeats() / (request.getFirstSeatsPerCol() * 2))
+                        + (request.getEconomySeats() / (request.getEconomySeatsPerCol() * 2)),
+                request.getEconomySeats(),
+                request.getEconomySeatsPerCol()));
+
         return resAirplaneDto;
     }
 
@@ -47,18 +75,6 @@ public class AirplaneServiceImpl implements AirplaneService {
         Airplane existedAirplane = airplaneOnDb.get();
         if (request.getAirplaneCode().isPresent())
             existedAirplane.setAirplaneCode(request.getAirplaneCode().get());
-        if (request.getEconomySeats().isPresent())
-            existedAirplane.setEconomySeats(request.getEconomySeats().get());
-        if (request.getBusinessSeats().isPresent())
-            existedAirplane.setBusinessSeats(request.getBusinessSeats().get());
-        if (request.getFirstSeats().isPresent())
-            existedAirplane.setFirstSeats(request.getFirstSeats().get());
-        if (request.getEconomySeatsPerCol().isPresent())
-            existedAirplane.setEconomySeatsPerCol(request.getEconomySeatsPerCol().get());
-        if (request.getBusinessSeatsPerCol().isPresent())
-            existedAirplane.setBusinessSeatsPerCol(request.getBusinessSeatsPerCol().get());
-        if (request.getFirstSeatsPerCol().isPresent())
-            existedAirplane.setFirstSeatsPerCol(request.getFirstSeatsPerCol().get());
 
         ResAirplaneDto resAirplaneDto = modelMapper.map(airplaneRepository.save(existedAirplane),
                 ResAirplaneDto.class);
@@ -87,7 +103,16 @@ public class AirplaneServiceImpl implements AirplaneService {
                     "Airplane with id " + airplaneId + " is not found.");
         Airplane deletedAirplane = airplaneOnDb.get();
         deletedAirplane.setDeletedAt(LocalDateTime.now());
-        ResAirplaneDto resAirplaneDto = modelMapper.map(airplaneRepository.save(deletedAirplane), ResAirplaneDto.class);
+        airplaneRepository.save(deletedAirplane);
+
+        // soft delete airplanes and it's seats
+        // deletedAirplane.getSeats().forEach(s -> {
+        //     s.setDeletedAt(LocalDateTime.now());
+        //     seatRepository.save(s);
+        //     seatRepository.delete(s);
+        // });
+        airplaneRepository.delete(deletedAirplane);
+        ResAirplaneDto resAirplaneDto = modelMapper.map(deletedAirplane, ResAirplaneDto.class);
 
         return resAirplaneDto;
     }
@@ -97,6 +122,30 @@ public class AirplaneServiceImpl implements AirplaneService {
         Page<Airplane> airplanes = airplaneRepository.findAll(filterQueries, paginationQueries);
 
         return airplanes.map(d -> modelMapper.map(d, ResAirplaneDto.class));
+    }
+
+    private List<Seat> generateSeats(Airplane airplane, Seat.ClassType classType, int seatNumberStart,
+            Integer numberOfSeats,
+            Integer numberOfSeatsPerCol) {
+        List<Seat> seats = new ArrayList<>();
+        final int LETTER_A_ASCII = 65;
+        final int COLS = 2;
+        int numberOfSeatsPerRow = numberOfSeatsPerCol * COLS;
+
+        for (int i = 1; i <= numberOfSeats; i++) {
+            int mod = i % numberOfSeatsPerRow;
+
+            double seatNumber = Math.ceil(Double.valueOf(i) / Double.valueOf(numberOfSeatsPerRow)) + seatNumberStart;
+            char seatAlphabet = mod == 0 ? (char) (LETTER_A_ASCII + numberOfSeatsPerRow - 1)
+                    : (char) (LETTER_A_ASCII + mod - 1);
+
+            Seat newSeat = new Seat();
+            newSeat.setAirplane(airplane);
+            newSeat.setClassType(classType);
+            newSeat.setSeatNo("" + (int) seatNumber + seatAlphabet);
+            seats.add(newSeat);
+        }
+        return seats;
     }
 
 }

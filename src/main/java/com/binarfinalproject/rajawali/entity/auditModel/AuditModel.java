@@ -20,6 +20,9 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class AuditModel implements Serializable {
+    @Column(name = "is_deleted")
+    private boolean isDeleted = Boolean.FALSE;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
