@@ -1,5 +1,6 @@
 package com.binarfinalproject.rajawali.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -11,9 +12,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.binarfinalproject.rajawali.dto.request.CreateAirportDto;
-import com.binarfinalproject.rajawali.dto.request.UpdateAirportDto;
-import com.binarfinalproject.rajawali.dto.response.ResAirportDto;
+import com.binarfinalproject.rajawali.dto.airport.request.CreateAirportDto;
+import com.binarfinalproject.rajawali.dto.airport.request.UpdateAirportDto;
+import com.binarfinalproject.rajawali.dto.airport.response.ResAirportDto;
 import com.binarfinalproject.rajawali.entity.Airport;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.repository.AirportRepository;
@@ -22,7 +23,7 @@ import com.binarfinalproject.rajawali.service.AirportService;
 @Service
 public class AirportServiceImpl implements AirportService {
     @Autowired
-    private ModelMapper modelMapper;
+    ModelMapper modelMapper;
 
     @Autowired
     AirportRepository airportRepository;
@@ -79,7 +80,10 @@ public class AirportServiceImpl implements AirportService {
                     "Airport with id " + airportId + " is not found.");
 
         Airport deletedAirport = airportOnDb.get();
+        deletedAirport.setDeletedAt(LocalDateTime.now());
+        airportRepository.save(deletedAirport);
         airportRepository.delete(deletedAirport);
+
         ResAirportDto resAirportDto = modelMapper.map(deletedAirport, ResAirportDto.class);
 
         return resAirportDto;
@@ -92,5 +96,4 @@ public class AirportServiceImpl implements AirportService {
                 .map(productEntity -> modelMapper.map(productEntity, ResAirportDto.class));
         return productsDto;
     }
-
 }

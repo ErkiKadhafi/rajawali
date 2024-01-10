@@ -1,4 +1,4 @@
-package com.binarfinalproject.rajawali.dto.request;
+package com.binarfinalproject.rajawali.dto.airport.request;
 
 import java.util.Optional;
 

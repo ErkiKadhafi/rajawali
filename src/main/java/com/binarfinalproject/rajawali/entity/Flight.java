@@ -4,8 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
+import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
 
 @Getter
 @Setter
@@ -13,24 +17,34 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "flights")
-public class Flight {
-
+@SQLDelete(sql = "UPDATE flights SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted=false")
+public class Flight extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "source_airport_id")
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "source_airport_id", nullable = false)
     private Airport sourceAirport;
 
-    @ManyToOne
-    @JoinColumn(name = "destination_airport_id")
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "destination_airport_id", nullable = false)
     private Airport destinationAirport;
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "airplane_id", nullable = false)
+    private Airplane airplane;
 
     private LocalDateTime departureDate;
 
     private LocalDateTime arrivalDate;
 
-    @OneToMany(mappedBy = "flight")
-    private List<Seat> seats;
+    private double economySeatsPrice;
+
+    private double businessSeatsPrice;
+
+    private double firstSeatsPrice;
+
+    private double discount;
 }

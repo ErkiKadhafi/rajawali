@@ -1,4 +1,4 @@
-package com.binarfinalproject.rajawali.dto.request;
+package com.binarfinalproject.rajawali.dto.airport.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
