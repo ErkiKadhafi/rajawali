@@ -2,8 +2,10 @@ package com.binarfinalproject.rajawali.controller;
 
 import com.binarfinalproject.rajawali.dto.flight.request.CreateFlightDto;
 import com.binarfinalproject.rajawali.dto.flight.request.UpdateFlightDto;
+import com.binarfinalproject.rajawali.dto.flight.response.ResDepartureDto;
 import com.binarfinalproject.rajawali.dto.flight.response.ResFlightDto;
 import com.binarfinalproject.rajawali.entity.Flight;
+import com.binarfinalproject.rajawali.entity.Seat;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.service.FlightService;
 import com.binarfinalproject.rajawali.util.ResponseMapper;
@@ -19,8 +21,12 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -110,6 +116,50 @@ public class FlightController {
         } catch (ApiException e) {
             return ResponseMapper.generateResponseFailed(
                     e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseMapper.generateResponseFailed(
+                    HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @GetMapping("/depatures")
+    public ResponseEntity<Object> getDepatureFlights(
+            @RequestParam(required = true) LocalDate departureDate,
+            @RequestParam(required = true) Seat.ClassType classType,
+            @RequestParam(required = true) Integer adultsNumber,
+            @RequestParam(required = false) Integer childsNumber,
+            @RequestParam(required = false) Integer infantsNumber,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer pageSize) {
+        try {
+            if (page == null)
+                page = 0;
+            if (pageSize == null)
+                pageSize = 10;
+            final int tempChildsNumber = childsNumber != null ? childsNumber : 0;
+            final int tempInfantsNumber = infantsNumber != null ? infantsNumber : 0;
+
+            Map<String, String> classTypeMappedAttr = new HashMap<String, String>();
+            classTypeMappedAttr.put(Seat.ClassType.ECONOMY.name(), "economyAvailableSeats");
+            classTypeMappedAttr.put(Seat.ClassType.BUSINESS.name(), "businessAvailableSeats");
+            classTypeMappedAttr.put(Seat.ClassType.FIRST.name(), "firstAvailableSeats");
+
+            Pageable paginationQueries = PageRequest.of(page, pageSize);
+            Specification<Flight> filterQueries = ((root, query, criteriaBuilder) -> {
+                List<Predicate> predicates = new ArrayList<>();
+                predicates.add(
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("departureDate"), departureDate));
+                predicates.add(
+                        criteriaBuilder.greaterThanOrEqualTo(root.get(classTypeMappedAttr.get(classType.name())),
+                                adultsNumber + tempChildsNumber + tempInfantsNumber));
+
+                return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            });
+            Page<ResDepartureDto> flights = flightService.getAllDepatures(filterQueries, paginationQueries, classType,
+                    adultsNumber, tempChildsNumber, tempInfantsNumber);
+
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
+                    "Depatures has successfully fetched!", flights);
         } catch (Exception e) {
             return ResponseMapper.generateResponseFailed(
                     HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

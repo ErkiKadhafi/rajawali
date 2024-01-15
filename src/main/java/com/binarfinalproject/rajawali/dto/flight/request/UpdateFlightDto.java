@@ -14,6 +14,12 @@ public class UpdateFlightDto {
     private Optional<@UUID String> destinationAirportId;
 
     private Optional<@UUID String> airplaneId;
+    
+    private Optional<String> sourceTerminal;
+
+    private Optional<String> destinationTerminal;
+
+    private Optional<String> thumbnailUrl;
 
     private Optional<LocalDateTime> departureDate;
 
@@ -26,4 +32,6 @@ public class UpdateFlightDto {
     private Optional<Double> firstSeatsPrice;
 
     private Optional<Double> discount;
+
+    private Optional<Integer> points;
 }
