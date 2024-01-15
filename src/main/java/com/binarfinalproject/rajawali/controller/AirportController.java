@@ -84,7 +84,7 @@ public class AirportController {
 
     @GetMapping
     public ResponseEntity<Object> getAllProducts(
-            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer pageSize) {
         try {
@@ -96,17 +96,27 @@ public class AirportController {
             Pageable paginationQueries = PageRequest.of(page, pageSize);
             Specification<Airport> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
-                if (name != null && !name.isEmpty()) {
+                if (search != null && !search.isEmpty()) {
                     predicates.add(
                             criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" +
-                                    name.toLowerCase() + "%"));
+                                    search.toLowerCase() + "%"));
+                    predicates.add(
+                            criteriaBuilder.like(criteriaBuilder.lower(root.get("country")), "%" +
+                                    search.toLowerCase() + "%"));
+                    predicates.add(
+                            criteriaBuilder.like(criteriaBuilder.lower(root.get("city")), "%" +
+                                    search.toLowerCase() + "%"));
+                    predicates.add(
+                            criteriaBuilder.like(criteriaBuilder.lower(root.get("cityCode")), "%" +
+                                    search.toLowerCase() + "%"));
+                    return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
                 }
 
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             });
             Page<ResAirportDto> products = airportService.getAllAirports(filterQueries, paginationQueries);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
-                    "Products has successfully fetched!", products);
+                    "Airports has successfully fetched!", products);
         } catch (Exception e) {
             return ResponseMapper.generateResponseFailed(
                     HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

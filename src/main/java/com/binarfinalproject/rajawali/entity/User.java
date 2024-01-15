@@ -3,7 +3,6 @@ package com.binarfinalproject.rajawali.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -29,6 +28,6 @@ public class User {
 
     private String password;
 
-    @OneToMany(mappedBy = "user")
-    private List<Reservation> reservations;
+    // @OneToMany(mappedBy = "user")
+    // private List<Reservation> reservations;
 }

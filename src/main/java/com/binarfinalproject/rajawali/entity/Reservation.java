@@ -3,8 +3,13 @@ package com.binarfinalproject.rajawali.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
+import com.binarfinalproject.rajawali.entity.Seat.ClassType;
+import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
 
 @Getter
 @Setter
@@ -12,23 +17,27 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "reservations")
-public class Reservation {
-
+@SQLDelete(sql = "UPDATE reservations SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted=false")
+public class Reservation extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @OneToOne
-    @JoinColumn(name = "seat_id")
-    private Seat seat;
-
-    @ManyToOne
-    @JoinColumn(name = "flight_id")
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "flight_id", nullable = false)
     private Flight flight;
 
-    private LocalDateTime reservationDate;
+    @OneToOne
+    @JoinColumn(name = "contact_details_id", referencedColumnName = "id")
+    private ContactDetails contactDetails;
+
+    @Enumerated(EnumType.STRING)
+    private ClassType classType;
+
+    @Column(name = "seat_price")
+    private double seatPrice;
+    
+    @Column(name = "total_price")
+    private double totalPrice;
 }

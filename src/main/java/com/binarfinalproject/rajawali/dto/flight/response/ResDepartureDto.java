@@ -26,30 +26,22 @@ class AirplaneDto {
 }
 
 @Data
-public class ResFlightDto {
+public class ResDepartureDto {
     private UUID id;
 
     private AirportDto sourceAirport;
 
     private AirportDto destinationAirport;
 
-    private String sourceTerminal;
-
-    private String destinationTerminal;
-
     private AirplaneDto airplane;
-
-    private String thumbnailUrl;
 
     private LocalDateTime departureDate;
 
     private LocalDateTime arrivalDate;
 
-    private Double economySeatsPrice;
+    private Double seatPrice;
 
-    private Double businessSeatsPrice;
-
-    private Double firstSeatsPrice;
+    private Double totalPrice;
 
     private Double discount;
 
@@ -62,6 +54,4 @@ public class ResFlightDto {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
-
-    private Integer points;
 }

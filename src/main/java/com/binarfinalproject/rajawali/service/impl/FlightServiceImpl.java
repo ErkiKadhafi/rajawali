@@ -2,17 +2,21 @@ package com.binarfinalproject.rajawali.service.impl;
 
 import com.binarfinalproject.rajawali.dto.flight.request.CreateFlightDto;
 import com.binarfinalproject.rajawali.dto.flight.request.UpdateFlightDto;
+import com.binarfinalproject.rajawali.dto.flight.response.ResDepartureDto;
 import com.binarfinalproject.rajawali.dto.flight.response.ResFlightDto;
 import com.binarfinalproject.rajawali.entity.Airplane;
 import com.binarfinalproject.rajawali.entity.Airport;
 import com.binarfinalproject.rajawali.entity.Flight;
+import com.binarfinalproject.rajawali.entity.Seat;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.repository.AirplaneRepository;
 import com.binarfinalproject.rajawali.repository.AirportRepository;
 import com.binarfinalproject.rajawali.repository.FlightRepository;
 import com.binarfinalproject.rajawali.service.FlightService;
 
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,6 +64,9 @@ public class FlightServiceImpl implements FlightService {
         flight.setSourceAirport(sourceAirportOnDb.get());
         flight.setDestinationAirport(destAirportOnDb.get());
         flight.setAirplane(airplaneOnDb.get());
+        flight.setEconomyAvailableSeats(airplaneOnDb.get().getEconomySeats());
+        flight.setBusinessAvailableSeats(airplaneOnDb.get().getBusinessSeats());
+        flight.setFirstAvailableSeats(airplaneOnDb.get().getFirstSeats());
         ResFlightDto resFlightDto = modelMapper.map(flightRepository.save(flight), ResFlightDto.class);
 
         return resFlightDto;
@@ -103,12 +110,15 @@ public class FlightServiceImpl implements FlightService {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "Source and destination airport can't be the same ");
 
+        request.getSourceTerminal().ifPresent(existedFlight::setSourceTerminal);
+        request.getDestinationTerminal().ifPresent(existedFlight::setDestinationTerminal);
         request.getDepartureDate().ifPresent(existedFlight::setDepartureDate);
         request.getArrivalDate().ifPresent(existedFlight::setArrivalDate);
         request.getEconomySeatsPrice().ifPresent(existedFlight::setEconomySeatsPrice);
         request.getBusinessSeatsPrice().ifPresent(existedFlight::setBusinessSeatsPrice);
         request.getFirstSeatsPrice().ifPresent(existedFlight::setFirstSeatsPrice);
         request.getDiscount().ifPresent(existedFlight::setDiscount);
+        request.getPoints().ifPresent(existedFlight::setPoints);
 
         ResFlightDto resFlightDto = modelMapper.map(flightRepository.save(existedFlight),
                 ResFlightDto.class);
@@ -151,4 +161,46 @@ public class FlightServiceImpl implements FlightService {
                 .map(flightEntity -> modelMapper.map(flightEntity, ResFlightDto.class));
         return flightsDto;
     }
+
+    @Override
+    public Page<ResDepartureDto> getAllDepatures(Specification<Flight> filterQueries, Pageable paginationQueries,
+            Seat.ClassType classType, Integer adultsNumber, Integer childsNumber, Integer infantsNumber)
+            throws ApiException {
+
+        Page<Flight> departures = flightRepository.findAll(filterQueries, paginationQueries);
+
+        Converter<Double, Double> convertTotalPrice = ctx -> ctx.getSource() == null ? null
+                : (ctx.getSource() * adultsNumber) + (ctx.getSource() * childsNumber * 0.9)
+                        + (ctx.getSource() * infantsNumber * 0.8);
+        TypeMap<Flight, ResDepartureDto> typeMap = modelMapper.getTypeMap(Flight.class,
+                ResDepartureDto.class);
+        if (typeMap == null) {
+            typeMap = modelMapper
+                    .createTypeMap(Flight.class, ResDepartureDto.class);
+        }
+        typeMap.addMappings(mapper -> mapper
+                .using(convertTotalPrice)
+                .map(src -> {
+                    if (classType.name().equals("ECONOMY"))
+                        return src.getEconomySeatsPrice();
+                    if (classType.name().equals("BUSINESS"))
+                        return src.getBusinessSeatsPrice();
+                    else
+                        return src.getFirstSeatsPrice();
+                }, ResDepartureDto::setTotalPrice))
+                .addMappings(mapper -> mapper.map(src -> {
+                    if (classType.name().equals("ECONOMY"))
+                        return src.getEconomySeatsPrice();
+                    if (classType.name().equals("BUSINESS"))
+                        return src.getBusinessSeatsPrice();
+                    else
+                        return src.getFirstSeatsPrice();
+                }, ResDepartureDto::setSeatPrice));
+
+        Page<ResDepartureDto> flightsDto = departures
+                .map(flightEntity -> modelMapper.map(flightEntity, ResDepartureDto.class));
+
+        return flightsDto;
+    }
+
 }

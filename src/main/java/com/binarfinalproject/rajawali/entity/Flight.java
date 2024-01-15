@@ -36,15 +36,40 @@ public class Flight extends AuditModel {
     @JoinColumn(name = "airplane_id", nullable = false)
     private Airplane airplane;
 
+    @Column(name = "source_terminal")
+    private String sourceTerminal;
+
+    @Column(name = "destination_terminal")
+    private String destinationTerminal;
+
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl;
+
+    @Column(name = "departure_date")
     private LocalDateTime departureDate;
 
+    @Column(name = "arrival_date")
     private LocalDateTime arrivalDate;
 
+    @Column(name = "economy_seats_price")
     private double economySeatsPrice;
 
+    @Column(name = "business_seats_price")
     private double businessSeatsPrice;
 
+    @Column(name = "first_seats_price")
     private double firstSeatsPrice;
 
     private double discount;
+
+    @Column(name = "economy_available_seats")
+    private int economyAvailableSeats;
+
+    @Column(name = "business_available_seats")
+    private int businessAvailableSeats;
+
+    @Column(name = "first_available_seats")
+    private int firstAvailableSeats;
+
+    private int points;
 }

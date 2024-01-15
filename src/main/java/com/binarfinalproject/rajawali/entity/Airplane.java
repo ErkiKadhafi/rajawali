@@ -9,7 +9,6 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.util.List;
 import java.util.UUID;
 
 @Setter
@@ -44,7 +43,4 @@ public class Airplane extends AuditModel {
 
     @Column(name = "first_seats_per_col")
     private Integer firstSeatsPerCol;
-
-    @OneToMany(mappedBy = "airplane", fetch = FetchType.LAZY)
-    private List<Seat> seats;
 }
