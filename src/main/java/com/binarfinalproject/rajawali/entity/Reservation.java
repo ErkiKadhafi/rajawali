@@ -24,20 +24,22 @@ public class Reservation extends AuditModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "flight_id", nullable = false)
-    private Flight flight;
-
-    @OneToOne
-    @JoinColumn(name = "contact_details_id", referencedColumnName = "id")
-    private ContactDetails contactDetails;
+    public enum GenderType {
+        MAN, WOMAN
+    }
 
     @Enumerated(EnumType.STRING)
     private ClassType classType;
 
-    @Column(name = "seat_price")
-    private double seatPrice;
-    
-    @Column(name = "total_price")
+    @Enumerated(EnumType.STRING)
+    private GenderType genderType;
+
+    private String fullname;
+
+    private String email;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
     private double totalPrice;
 }

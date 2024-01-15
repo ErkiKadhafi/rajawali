@@ -1,11 +1,9 @@
 package com.binarfinalproject.rajawali.dto.reservation.response;
 
-import java.util.List;
-
 import lombok.Data;
 
 @Data
-public class ResReservationDto {
+public class ResListReservationDto {
     private String id;
 
     private String classType;
@@ -19,6 +17,4 @@ public class ResReservationDto {
     private String phoneNumber;
 
     private Double totalPrice;
-
-    private List<ResFlightDetailsDto> flightDetails;
 }

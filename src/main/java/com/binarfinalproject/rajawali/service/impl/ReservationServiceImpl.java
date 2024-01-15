@@ -8,26 +8,32 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.binarfinalproject.rajawali.dto.reservation.request.CreateReservationDto;
+import com.binarfinalproject.rajawali.dto.reservation.request.FlightDetailsDto;
 import com.binarfinalproject.rajawali.dto.reservation.request.PassengerDto;
+import com.binarfinalproject.rajawali.dto.reservation.response.ResFlightDetailsDto;
+import com.binarfinalproject.rajawali.dto.reservation.response.ResListReservationDto;
 import com.binarfinalproject.rajawali.dto.reservation.response.ResPassengerDto;
 import com.binarfinalproject.rajawali.dto.reservation.response.ResReservationDto;
 import com.binarfinalproject.rajawali.dto.seat.response.ResSeatDto;
-import com.binarfinalproject.rajawali.entity.ContactDetails;
 import com.binarfinalproject.rajawali.entity.Flight;
 import com.binarfinalproject.rajawali.entity.Passenger;
 import com.binarfinalproject.rajawali.entity.Reservation;
+import com.binarfinalproject.rajawali.entity.ReservationDetails;
 import com.binarfinalproject.rajawali.entity.Seat;
 import com.binarfinalproject.rajawali.entity.Passenger.AgeType;
 import com.binarfinalproject.rajawali.entity.Seat.ClassType;
 import com.binarfinalproject.rajawali.exception.ApiException;
-import com.binarfinalproject.rajawali.repository.ContactDetailsRepository;
 import com.binarfinalproject.rajawali.repository.FlightRepository;
 import com.binarfinalproject.rajawali.repository.PassengerRepository;
+import com.binarfinalproject.rajawali.repository.ReservationDetailsRepository;
 import com.binarfinalproject.rajawali.repository.ReservationRepository;
 import com.binarfinalproject.rajawali.repository.SeatRepository;
 import com.binarfinalproject.rajawali.service.ReservationService;
@@ -47,7 +53,7 @@ public class ReservationServiceImpl implements ReservationService {
     ReservationRepository reservationRepository;
 
     @Autowired
-    ContactDetailsRepository contactDetailsRepository;
+    ReservationDetailsRepository reservationDetailsRepository;
 
     @Autowired
     PassengerRepository passengerRepository;
@@ -60,9 +66,18 @@ public class ReservationServiceImpl implements ReservationService {
             throw new ApiException(HttpStatus.NOT_FOUND,
                     "Flight with id " + flightId + " is not found.");
 
-        List<Seat> allSeats = seatRepository.findByAirplaneId(flightOnDb.get().getAirplane().getId());
-        List<Seat> reservedSeats = seatRepository.findByAirplaneIdAndClassType(flightOnDb.get().getAirplane().getId(),
+        List<Seat> allSeats = seatRepository.findByAirplaneIdAndClassType(flightOnDb.get().getAirplane().getId(),
                 classType);
+        List<Seat> reservedSeats = new ArrayList<>();
+
+        List<ReservationDetails> reservationDetails = reservationDetailsRepository
+                .findByFlightId(flightOnDb.get().getId());
+        for (ReservationDetails rd : reservationDetails) {
+            List<Passenger> passengers = passengerRepository.findByReservationDetailsId(rd.getId());
+            for (Passenger p : passengers) {
+                reservedSeats.add(p.getSeat());
+            }
+        }
 
         List<ResSeatDto> resSeatDtos = allSeats
                 .stream()
@@ -86,74 +101,98 @@ public class ReservationServiceImpl implements ReservationService {
     @Transactional(rollbackFor = { ApiException.class, Exception.class })
     @Override
     public ResReservationDto createReservation(CreateReservationDto request) throws ApiException {
-        // check if the flight id is exist
-        Optional<Flight> flightOnDb = flightRepository.findById(UUID.fromString(request.getFlightId()));
-        if (flightOnDb.isEmpty())
-            throw new ApiException(HttpStatus.NOT_FOUND,
-                    "Flight with id " + request.getFlightId() + " is not found.");
-
-        // store the contact details
-        Flight flight = flightOnDb.get();
-        ContactDetails contactDetails = modelMapper.map(request.getContactDetails(),
-                ContactDetails.class);
-        ContactDetails savedContactDetails = contactDetailsRepository.saveAndFlush(contactDetails);
-
         // store the reservation based on contact details
-        Reservation reservation = new Reservation();
-        reservation.setFlight(flight);
-        reservation.setContactDetails(savedContactDetails);
-        reservation.setClassType(ClassType.valueOf(request.getClassType()));
+        Reservation reservation = modelMapper.map(request, Reservation.class);
         Reservation savedReservation = reservationRepository.saveAndFlush(reservation);
+        double totalPriceAllFlights = 0;
 
-        // update available seats
-        double totalPrice = 0, seatPrice = 0;
-        if (request.getClassType().equals(ClassType.ECONOMY.name())) {
-            seatPrice = flight.getEconomySeatsPrice();
-            flight.setEconomyAvailableSeats(flight.getEconomyAvailableSeats() - request.getPassengers().size());
-        } else if (request.getClassType().equals(ClassType.BUSINESS.name())) {
-            seatPrice = flight.getBusinessSeatsPrice();
-            flight.setBusinessAvailableSeats(flight.getBusinessAvailableSeats() - request.getPassengers().size());
-        } else {
-            seatPrice = flight.getFirstSeatsPrice();
-            flight.setFirstAvailableSeats(flight.getFirstAvailableSeats() - request.getPassengers().size());
-        }
-        flightRepository.saveAndFlush(flight);
-
-        // store each passenger
-        List<ResPassengerDto> passengersDto = new ArrayList<>();
-        for (PassengerDto pd : request.getPassengers()) {
-            Optional<Seat> seatOnDb = seatRepository.findById(UUID.fromString(pd.getSeatId()));
-            if (seatOnDb.isEmpty())
+        List<ResFlightDetailsDto> listResFlightDtos = new ArrayList<>();
+        for (FlightDetailsDto fd : request.getFlightDetails()) {
+            // check if the flight id is exist
+            Optional<Flight> flightOnDb = flightRepository.findById(UUID.fromString(fd.getFlightId()));
+            if (flightOnDb.isEmpty())
                 throw new ApiException(HttpStatus.NOT_FOUND,
-                        "Seat with id '" + pd.getSeatId() + "' is not found.");
-            if (!seatOnDb.get().getClassType().name().equals(request.getClassType()))
-                throw new ApiException(HttpStatus.BAD_REQUEST,
-                        "Seat with id '" + pd.getSeatId() + "' is not in class " + request.getClassType());
-            if (!seatOnDb.get().getClassType().name().equals(request.getClassType()))
-                throw new ApiException(HttpStatus.BAD_REQUEST,
-                        "Seat with id '" + pd.getSeatId() + "' is not in class " + request.getClassType());
+                        "Flight with id " + fd.getFlightId() + " is not found.");
 
-            Passenger passenger = modelMapper.map(pd, Passenger.class);
-            passenger.setReservation(savedReservation);
-            passenger.setSeat(seatOnDb.get());
-            if (pd.getAgeType().equals(AgeType.ADULT.name()))
-                totalPrice += seatPrice;
-            else if (pd.getAgeType().equals(AgeType.CHILD.name()))
-                totalPrice += seatPrice * 0.9;
-            else
-                totalPrice += seatPrice * 0.8;
+            Flight flight = flightOnDb.get();
+            ReservationDetails reservationDetails = new ReservationDetails();
+            reservationDetails.setReservation(savedReservation);
+            reservationDetails.setFlight(flight);
+            reservationDetails.setUseAssurance(fd.getUseAssurance());
 
-            passengersDto.add(modelMapper.map(passengerRepository.saveAndFlush(passenger), ResPassengerDto.class));
+            // update available seats
+            double totalPrice = 0, seatPrice = 0;
+            if (request.getClassType().equals(ClassType.ECONOMY.name())) {
+                seatPrice = flight.getEconomySeatsPrice();
+                flight.setEconomyAvailableSeats(flight.getEconomyAvailableSeats() - fd.getPassengers().size());
+            } else if (request.getClassType().equals(ClassType.BUSINESS.name())) {
+                seatPrice = flight.getBusinessSeatsPrice();
+                flight.setBusinessAvailableSeats(flight.getBusinessAvailableSeats() - fd.getPassengers().size());
+            } else {
+                seatPrice = flight.getFirstSeatsPrice();
+                flight.setFirstAvailableSeats(flight.getFirstAvailableSeats() - fd.getPassengers().size());
+            }
+            for (PassengerDto pd : fd.getPassengers()) {
+                if (pd.getAgeType().equals(AgeType.ADULT.name()))
+                    totalPrice += seatPrice;
+                else if (pd.getAgeType().equals(AgeType.CHILD.name()))
+                    totalPrice += seatPrice * 0.9;
+                else
+                    totalPrice += seatPrice * 0.8;
+            }
+            totalPriceAllFlights += totalPrice;
+            flightRepository.saveAndFlush(flight);
+            reservationDetails.setSeatPrice(seatPrice);
+            reservationDetails.setTotalPrice(totalPrice);
+            ReservationDetails savedReservationDetails = reservationDetailsRepository.saveAndFlush(reservationDetails);
+
+            // store each passenger
+            List<ResPassengerDto> listPassengerDtos = new ArrayList<>();
+            for (PassengerDto pd : fd.getPassengers()) {
+                Optional<Seat> seatOnDb = seatRepository.findById(UUID.fromString(pd.getSeatId()));
+                if (seatOnDb.isEmpty())
+                    throw new ApiException(HttpStatus.NOT_FOUND,
+                            "Seat with id '" + pd.getSeatId() + "' is not found.");
+                if (!seatOnDb.get().getClassType().name().equals(request.getClassType()))
+                    throw new ApiException(HttpStatus.BAD_REQUEST,
+                            "Seat with id '" + pd.getSeatId() + "' is not in class " + request.getClassType());
+                if (!seatOnDb.get().getClassType().name().equals(request.getClassType()))
+                    throw new ApiException(HttpStatus.BAD_REQUEST,
+                            "Seat with id '" + pd.getSeatId() + "' is not in class " + request.getClassType());
+
+                Passenger passenger = modelMapper.map(pd, Passenger.class);
+                passenger.setReservationDetails(reservationDetails);
+                passenger.setSeat(seatOnDb.get());
+
+                listPassengerDtos.add(modelMapper.map(passengerRepository.saveAndFlush(passenger),
+                        ResPassengerDto.class));
+            }
+            ResFlightDetailsDto resFlightDetailsDto = modelMapper.map(savedReservationDetails,
+                    ResFlightDetailsDto.class);
+            resFlightDetailsDto.setSeatPrice(seatPrice);
+            resFlightDetailsDto.setTotalPrice(totalPrice);
+            resFlightDetailsDto.setPassengers(listPassengerDtos);
+            listResFlightDtos.add(resFlightDetailsDto);
         }
 
         // map the response
-        savedReservation.setSeatPrice(seatPrice);
-        savedReservation.setTotalPrice(totalPrice);
+        savedReservation.setTotalPrice(totalPriceAllFlights);
+        reservationRepository.save(savedReservation);
         ResReservationDto resReservationDto = modelMapper.map(reservationRepository.save(savedReservation),
                 ResReservationDto.class);
-        resReservationDto.setPassengers(passengersDto);
+        resReservationDto.setFlightDetails(listResFlightDtos);
+        resReservationDto.setTotalPrice(totalPriceAllFlights);
 
         return resReservationDto;
+    }
+
+    @Override
+    public Page<ResListReservationDto> getAllReservations(Specification<Reservation> filterQueries,
+            Pageable paginationQueries) throws ApiException {
+        Page<Reservation> reservations = reservationRepository.findAll(filterQueries, paginationQueries);
+        Page<ResListReservationDto> reservationsDto = reservations
+                .map(productEntity -> modelMapper.map(productEntity, ResListReservationDto.class));
+        return reservationsDto;
     }
 
 }

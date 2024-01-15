@@ -6,10 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import com.binarfinalproject.rajawali.entity.Passenger;
+import com.binarfinalproject.rajawali.entity.ReservationDetails;
 import java.util.List;
 
 @Repository
-public interface PassengerRepository extends JpaRepository<Passenger, UUID>, JpaSpecificationExecutor<Passenger> {
-    List<Passenger> findByReservationDetailsId(UUID id);
+public interface ReservationDetailsRepository
+        extends JpaRepository<ReservationDetails, UUID>, JpaSpecificationExecutor<ReservationDetails> {
+
+    List<ReservationDetails> findByFlightId(UUID id);
 }
