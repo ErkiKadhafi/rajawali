@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.binarfinalproject.rajawali.dto.reservation.request.CreateReservationDto;
 import com.binarfinalproject.rajawali.dto.reservation.request.FlightDetailsDto;
 import com.binarfinalproject.rajawali.dto.reservation.request.PassengerDto;
+import com.binarfinalproject.rajawali.dto.reservation.response.ResAvailableSeatsDto;
 import com.binarfinalproject.rajawali.dto.reservation.response.ResFlightDetailsDto;
 import com.binarfinalproject.rajawali.dto.reservation.response.ResListReservationDto;
 import com.binarfinalproject.rajawali.dto.reservation.response.ResPassengerDto;
@@ -59,12 +60,20 @@ public class ReservationServiceImpl implements ReservationService {
     PassengerRepository passengerRepository;
 
     @Override
-    public List<ResSeatDto> getAvailableSeats(UUID flightId, Seat.ClassType classType) throws ApiException {
+    public ResAvailableSeatsDto getAvailableSeats(UUID flightId, Seat.ClassType classType) throws ApiException {
         Optional<Flight> flightOnDb = flightRepository.findById(flightId);
 
         if (flightOnDb.isEmpty())
             throw new ApiException(HttpStatus.NOT_FOUND,
                     "Flight with id " + flightId + " is not found.");
+
+        int seatPerCol;
+        if (classType.name().equals(ClassType.ECONOMY.name()))
+            seatPerCol = flightOnDb.get().getAirplane().getEconomySeatsPerCol();
+        else if (classType.name().equals(ClassType.BUSINESS.name()))
+            seatPerCol = flightOnDb.get().getAirplane().getBusinessSeatsPerCol();
+        else
+            seatPerCol = flightOnDb.get().getAirplane().getFirstSeatsPerCol();
 
         List<Seat> allSeats = seatRepository.findByAirplaneIdAndClassType(flightOnDb.get().getAirplane().getId(),
                 classType);
@@ -94,8 +103,11 @@ public class ReservationServiceImpl implements ReservationService {
                     return resSeatDto;
                 })
                 .collect(Collectors.toList());
-
-        return resSeatDtos;
+        ResAvailableSeatsDto resAvailableSeatsDto = new ResAvailableSeatsDto();
+        resAvailableSeatsDto.setClassType(classType.name());
+        resAvailableSeatsDto.setSeatPerCol(seatPerCol);
+        resAvailableSeatsDto.setSeats(resSeatDtos);
+        return resAvailableSeatsDto;
     }
 
     @Transactional(rollbackFor = { ApiException.class, Exception.class })
