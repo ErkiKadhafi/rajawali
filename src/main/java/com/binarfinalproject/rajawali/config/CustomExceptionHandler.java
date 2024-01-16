@@ -1,8 +1,11 @@
 package com.binarfinalproject.rajawali.config;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,8 @@ import com.binarfinalproject.rajawali.util.ResponseMapper;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.ModelAndView;
 
 @AllArgsConstructor
 class InputError {
@@ -54,5 +59,11 @@ public class CustomExceptionHandler {
         return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR,
                 "There is something wrong : " + ex.getMessage());
     }
+    @ExceptionHandler(value = {MaxUploadSizeExceededException.class})
+    public ResponseEntity<Object> handleMaxUploadSizeExceededException(HttpServletRequest request, HttpServletResponse response,
+                                                                       MaxUploadSizeExceededException exception) throws IOException {
 
+        // Use the existing method to generate the response
+        return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "Max File 1 mb");
+    }
 }

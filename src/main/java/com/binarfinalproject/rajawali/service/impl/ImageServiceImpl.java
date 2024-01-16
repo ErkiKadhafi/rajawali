@@ -26,6 +26,9 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public ResImageDto uploadImage(UploadImageDto request) throws ApiException {
         try {
+            if(request.getFile().getSize() > 1 * 1024 * 1024){
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Max File 1 mb");
+            }
             String publicId = (String) cloudinary.uploader()
                     .upload(request.getFile().getBytes(),
                             Map.of("folder", folderName, "public_id", UUID.randomUUID().toString()))
