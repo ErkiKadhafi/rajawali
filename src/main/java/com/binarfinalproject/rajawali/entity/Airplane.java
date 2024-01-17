@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 import java.util.UUID;
 
@@ -17,7 +16,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "airplanes")
 @SQLDelete(sql = "UPDATE airplanes SET is_deleted = true WHERE id = ?")
-@SQLRestriction("is_deleted=false")
 public class Airplane extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
