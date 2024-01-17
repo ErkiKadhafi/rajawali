@@ -152,6 +152,8 @@ public class ReservationServiceImpl implements ReservationService {
                 else
                     totalPrice += seatPrice * 0.8;
             }
+            if (fd.getUseAssurance())
+                totalPrice += 300000;
             totalPriceAllFlights += totalPrice;
             flightRepository.saveAndFlush(flight);
             reservationDetails.setSeatPrice(seatPrice);

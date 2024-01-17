@@ -124,6 +124,8 @@ public class FlightController {
 
     @GetMapping("/depatures")
     public ResponseEntity<Object> getDepatureFlights(
+            @RequestParam(required = true) UUID sourceAirportId,
+            @RequestParam(required = true) UUID destAirportId,
             @RequestParam(required = true) LocalDate departureDate,
             @RequestParam(required = true) Seat.ClassType classType,
             @RequestParam(required = true) Integer adultsNumber,
@@ -147,11 +149,9 @@ public class FlightController {
             Pageable paginationQueries = PageRequest.of(page, pageSize);
             Specification<Flight> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
-                predicates.add(
-                        criteriaBuilder.greaterThanOrEqualTo(root.get("departureDate"), departureDate));
-                predicates.add(
-                        criteriaBuilder.greaterThanOrEqualTo(root.get(classTypeMappedAttr.get(classType.name())),
-                                adultsNumber + tempChildsNumber + tempInfantsNumber));
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("departureDate"), departureDate));
+                predicates.add(criteriaBuilder.equal(root.get("sourceAirport").get("id"), sourceAirportId));
+                predicates.add(criteriaBuilder.equal(root.get("destinationAirport").get("id"), destAirportId));
 
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             });
