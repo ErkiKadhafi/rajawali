@@ -2,16 +2,14 @@ package com.binarfinalproject.rajawali.repository;
 
 import java.util.UUID;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.binarfinalproject.rajawali.entity.ReservationDetails;
 import java.util.List;
 
 @Repository
-public interface ReservationDetailsRepository
-        extends JpaRepository<ReservationDetails, UUID>, JpaSpecificationExecutor<ReservationDetails> {
-
+public interface ReservationDetailsRepository extends SoftDeleteRepository<ReservationDetails, UUID> {
+    @Query("select e from #{#entityName} e where e.isDeleted = false and e.flight.id = ?1")
     List<ReservationDetails> findByFlightId(UUID id);
 }
