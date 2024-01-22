@@ -51,7 +51,7 @@ public class ReservationController {
             Pageable paginationQueries = PageRequest.of(page, pageSize);
             Specification<Reservation> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
-
+                predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             });
             Page<ResListReservationDto> reservations = reservationService.getAllReservations(filterQueries,

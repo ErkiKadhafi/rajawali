@@ -2,6 +2,8 @@ package com.binarfinalproject.rajawali.dto.reservation.request;
 
 import java.util.List;
 
+import org.hibernate.validator.constraints.UUID;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -11,12 +13,19 @@ import lombok.Data;
 @Data
 public class FlightDetailsDto {
     @NotBlank
+    @UUID
     private String flightId;
 
     @NotNull
-    private Boolean useAssurance;
+    private Boolean useTravelAssurance;
 
     @NotNull
-    @NotEmpty(message = "array cannot be empty")
-    private List<@Valid PassengerDto> passengers;
+    private Boolean useBagageAssurance;
+
+    @NotNull
+    private Boolean useFlightDelayAssurance;
+
+    @NotNull
+    @NotEmpty(message = "passenger detail list cannot be empty")
+    private List<@Valid PassengerDetailsDto> passengerDetailList;
 }

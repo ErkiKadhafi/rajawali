@@ -9,6 +9,7 @@ import com.binarfinalproject.rajawali.util.ValidateEnum;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -33,6 +34,10 @@ public class CreateReservationDto {
     private String phoneNumber;
 
     @NotNull
-    @Valid
-    private List<FlightDetailsDto> flightDetails;
+    @NotEmpty(message = "passenger list cannot be empty.")
+    private List<@Valid PassengerDto> passengerList;
+
+    @NotNull
+    @NotEmpty(message = "flight detail list cannot be empty.")
+    private List<@Valid FlightDetailsDto> flightDetailList;
 }

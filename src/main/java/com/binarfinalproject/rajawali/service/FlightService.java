@@ -3,6 +3,7 @@ package com.binarfinalproject.rajawali.service;
 import com.binarfinalproject.rajawali.dto.flight.request.CreateFlightDto;
 import com.binarfinalproject.rajawali.dto.flight.request.UpdateFlightDto;
 import com.binarfinalproject.rajawali.dto.flight.response.ResDepartureDto;
+import com.binarfinalproject.rajawali.dto.flight.response.ResDetailDepartureDto;
 import com.binarfinalproject.rajawali.dto.flight.response.ResFlightDto;
 import com.binarfinalproject.rajawali.entity.Flight;
 import com.binarfinalproject.rajawali.entity.Seat;
@@ -24,8 +25,16 @@ public interface FlightService {
 
     Page<ResFlightDto> getAllFlights(Specification<Flight> filterQueries, Pageable paginationQueries);
 
-    Page<ResDepartureDto> getAllDepatures(Specification<Flight> filterQueries,
+    Page<ResDepartureDto> getAllDepatures(
+            Specification<Flight> filterQueries,
             Pageable paginationQueries,
+            Seat.ClassType classType,
+            Integer adultsNumber,
+            Integer childsNumber,
+            Integer infantsNumber) throws ApiException;
+
+    ResDetailDepartureDto getDepatureFlightsById(
+            UUID flightId,
             Seat.ClassType classType,
             Integer adultsNumber,
             Integer childsNumber,

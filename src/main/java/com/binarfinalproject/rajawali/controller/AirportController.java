@@ -83,7 +83,7 @@ public class AirportController {
     }
 
     @GetMapping
-    public ResponseEntity<Object> getAllProducts(
+    public ResponseEntity<Object> getAllAirports(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer pageSize) {
@@ -96,6 +96,8 @@ public class AirportController {
             Pageable paginationQueries = PageRequest.of(page, pageSize);
             Specification<Airport> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
+                Predicate combinedFilterPredicates;
+
                 if (search != null && !search.isEmpty()) {
                     predicates.add(
                             criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" +
@@ -109,10 +111,12 @@ public class AirportController {
                     predicates.add(
                             criteriaBuilder.like(criteriaBuilder.lower(root.get("cityCode")), "%" +
                                     search.toLowerCase() + "%"));
-                    return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
-                }
 
-                return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+                    combinedFilterPredicates = criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+                } else {
+                    combinedFilterPredicates = criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+                }
+                return criteriaBuilder.and(combinedFilterPredicates, criteriaBuilder.equal(root.get("isDeleted"), false));
             });
             Page<ResAirportDto> products = airportService.getAllAirports(filterQueries, paginationQueries);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK,

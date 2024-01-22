@@ -1,5 +1,6 @@
 package com.binarfinalproject.rajawali.dto.reservation.response;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Data;
@@ -20,5 +21,9 @@ public class ResReservationDto {
 
     private Double totalPrice;
 
-    private List<ResFlightDetailsDto> flightDetails;
+    private List<ResPassengerDto> passengers;
+
+    private List<ResFlightDetailsDto> flightDetailList;
+
+    private LocalDateTime expiredAt;
 }

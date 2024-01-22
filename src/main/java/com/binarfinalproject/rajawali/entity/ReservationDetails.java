@@ -29,8 +29,14 @@ public class ReservationDetails extends AuditModel {
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
 
-    @Column(name = "use_assurancd")
-    private boolean useAssurance;
+    @Column(name = "use_travel_assurance")
+    private boolean useTravelAssurance;
+
+    @Column(name = "use_bagage_assurance")
+    private boolean useBagageAssurance;
+
+    @Column(name = "use_flight_delay_assurance")
+    private boolean useFlightDelayAssurance;
 
     @Column(name = "seat_price")
     private double seatPrice;

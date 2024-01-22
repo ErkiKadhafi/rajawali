@@ -92,11 +92,13 @@ public class AirplaneController {
 
             Pageable paginationQueries = PageRequest.of(page, pageSize);
             Specification<Airplane> filterQueries = ((root, query, criteriaBuilder) -> {
-                List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+                List<Predicate> predicates = new ArrayList<>();
+
                 if (airplaneCode != null && !airplaneCode.isEmpty()) {
                     predicates.add(
                             criteriaBuilder.like(criteriaBuilder.lower(root.get("airplaneCode")), "%" +
                                     airplaneCode.toLowerCase() + "%"));
+                    predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
                 }
 
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
