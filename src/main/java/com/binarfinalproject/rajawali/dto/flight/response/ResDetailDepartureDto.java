@@ -19,7 +19,7 @@ class ResDetailDepartureAirportDto {
 }
 
 @Data
-class ResDepartureAirplaneDto {
+class ResDetailDepartureAirplaneDto {
     private String id;
 
     private String airplaneCode;
@@ -33,7 +33,7 @@ public class ResDetailDepartureDto {
 
     private ResDetailDepartureAirportDto destinationAirport;
 
-    private ResDepartureAirplaneDto airplane;
+    private ResDetailDepartureAirplaneDto airplane;
 
     private LocalDateTime departureDate;
 
