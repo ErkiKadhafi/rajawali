@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-class ResDepartureAirportDto {
+class ResDetailDepartureAirportDto {
     private String id;
 
     private String name;
@@ -29,9 +29,9 @@ class ResDepartureAirplaneDto {
 public class ResDetailDepartureDto {
     private UUID id;
 
-    private ResDepartureAirportDto sourceAirport;
+    private ResDetailDepartureAirportDto sourceAirport;
 
-    private ResDepartureAirportDto destinationAirport;
+    private ResDetailDepartureAirportDto destinationAirport;
 
     private ResDepartureAirplaneDto airplane;
 
