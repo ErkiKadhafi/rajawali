@@ -10,11 +10,15 @@ public class ResFlightDetailsDto {
 
     private String flightId;
 
-    private Boolean useAssurance;
+    private Boolean useTravelAssurance;
+
+    private Boolean useBagageAssurance;
+
+    private Boolean useFlightDelayAssurance;
 
     private Double seatPrice;
 
     private Double totalPrice;
 
-    private List<ResPassengerDto> passengers;
+    private List<ResPassengerDetailsDto> passengerDetailList;
 }

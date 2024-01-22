@@ -40,9 +40,6 @@ public class Flight extends AuditModel {
     @Column(name = "destination_terminal")
     private String destinationTerminal;
 
-    @Column(name = "thumbnail_url")
-    private String thumbnailUrl;
-
     @Column(name = "departure_date")
     private LocalDateTime departureDate;
 

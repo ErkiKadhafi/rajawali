@@ -3,6 +3,7 @@ package com.binarfinalproject.rajawali.controller;
 import com.binarfinalproject.rajawali.dto.flight.request.CreateFlightDto;
 import com.binarfinalproject.rajawali.dto.flight.request.UpdateFlightDto;
 import com.binarfinalproject.rajawali.dto.flight.response.ResDepartureDto;
+import com.binarfinalproject.rajawali.dto.flight.response.ResDetailDepartureDto;
 import com.binarfinalproject.rajawali.dto.flight.response.ResFlightDto;
 import com.binarfinalproject.rajawali.entity.Flight;
 import com.binarfinalproject.rajawali.entity.Seat;
@@ -23,6 +24,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -149,9 +151,13 @@ public class FlightController {
             Pageable paginationQueries = PageRequest.of(page, pageSize);
             Specification<Flight> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("departureDate"), departureDate));
+                predicates.add(
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("departureDate"), departureDate.atStartOfDay()));
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("departureDate"),
+                        departureDate.atTime(LocalTime.MAX)));
                 predicates.add(criteriaBuilder.equal(root.get("sourceAirport").get("id"), sourceAirportId));
                 predicates.add(criteriaBuilder.equal(root.get("destinationAirport").get("id"), destAirportId));
+                predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             });
@@ -160,6 +166,35 @@ public class FlightController {
 
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
                     "Depatures has successfully fetched!", flights);
+        } catch (Exception e) {
+            return ResponseMapper.generateResponseFailed(
+                    HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @GetMapping("/departures/{flightId}")
+    public ResponseEntity<Object> getDepatureFlightsById(
+            @PathVariable UUID flightId,
+            @RequestParam(required = true) Seat.ClassType classType,
+            @RequestParam(required = true) Integer adultsNumber,
+            @RequestParam(required = false) Integer childsNumber,
+            @RequestParam(required = false) Integer infantsNumber) {
+        try {
+            final int tempChildsNumber = childsNumber != null ? childsNumber : 0;
+            final int tempInfantsNumber = infantsNumber != null ? infantsNumber : 0;
+
+            Map<String, String> classTypeMappedAttr = new HashMap<String, String>();
+            classTypeMappedAttr.put(Seat.ClassType.ECONOMY.name(), "economyAvailableSeats");
+            classTypeMappedAttr.put(Seat.ClassType.BUSINESS.name(), "businessAvailableSeats");
+            classTypeMappedAttr.put(Seat.ClassType.FIRST.name(), "firstAvailableSeats");
+
+            ResDetailDepartureDto flight = flightService.getDepatureFlightsById(flightId, classType,
+                    adultsNumber, tempChildsNumber, tempInfantsNumber);
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Departure has successfully fetched!",
+                    flight);
+        } catch (ApiException e) {
+            return ResponseMapper.generateResponseFailed(
+                    e.getStatus(), e.getMessage());
         } catch (Exception e) {
             return ResponseMapper.generateResponseFailed(
                     HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

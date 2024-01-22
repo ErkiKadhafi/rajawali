@@ -39,8 +39,6 @@ public class ResFlightDto {
 
     private ResFlightAirplaneDto airplane;
 
-    private String thumbnailUrl;
-
     private LocalDateTime departureDate;
 
     private LocalDateTime arrivalDate;

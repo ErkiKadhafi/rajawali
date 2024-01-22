@@ -22,6 +22,9 @@ public class Reservation extends AuditModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @OneToOne(mappedBy = "reservation")
+    private Payment payment;
+
     public enum GenderType {
         MAN, WOMAN
     }
