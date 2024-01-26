@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
 
@@ -18,7 +17,6 @@ import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
 @Entity
 @Table(name = "flights")
 @SQLDelete(sql = "UPDATE flights SET is_deleted = true WHERE id = ?")
-@SQLRestriction("is_deleted=false")
 public class Flight extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

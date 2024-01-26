@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.binarfinalproject.rajawali.dto.reservation.request.CreateReservationDto;
+import com.binarfinalproject.rajawali.dto.reservation.response.ResAvailableSeatsDto;
 import com.binarfinalproject.rajawali.dto.reservation.response.ResListReservationDto;
 import com.binarfinalproject.rajawali.dto.reservation.response.ResReservationDto;
-import com.binarfinalproject.rajawali.dto.seat.response.ResSeatDto;
 import com.binarfinalproject.rajawali.entity.Reservation;
 import com.binarfinalproject.rajawali.entity.Seat;
 import com.binarfinalproject.rajawali.exception.ApiException;
@@ -72,7 +72,7 @@ public class ReservationController {
     public ResponseEntity<Object> getAvailableSeats(@PathVariable UUID flightId,
             @PathVariable Seat.ClassType classType) {
         try {
-            List<ResSeatDto> response = reservationService.getAvailableSeats(flightId, classType);
+            ResAvailableSeatsDto response = reservationService.getAvailableSeats(flightId, classType);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
                     "The available seats has successfully created!",
                     response);

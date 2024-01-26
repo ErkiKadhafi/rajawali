@@ -6,7 +6,6 @@ import lombok.*;
 import java.util.UUID;
 
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 import com.binarfinalproject.rajawali.entity.Seat.ClassType;
 import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
@@ -18,7 +17,6 @@ import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
 @Entity
 @Table(name = "reservations")
 @SQLDelete(sql = "UPDATE reservations SET is_deleted = true WHERE id = ?")
-@SQLRestriction("is_deleted=false")
 public class Reservation extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
