@@ -31,8 +31,7 @@ public class AirplaneController {
     @Autowired
     AirplaneService airplaneService;
 
-    @Autowired
-    ModelMapper modelMapper;
+
 
     @PostMapping
     public ResponseEntity<Object> createAirplane(@Valid @RequestBody CreateAirplaneDto request) {
