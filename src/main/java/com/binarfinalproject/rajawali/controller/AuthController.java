@@ -39,8 +39,7 @@ public class AuthController {
   @Autowired
   AuthenticationManager authenticationManager;
 
-  @Autowired
-  UserRepository userRepository;
+
 
   @Autowired
   RoleRepository roleRepository;
@@ -96,43 +95,12 @@ public class AuthController {
       ResUserDto response = signUpService.createAccount(signUpRequest);
       if (Objects.nonNull(response)){
         return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "User registered successfully!", response);
+      } else {
+        return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "error");
       }
     } catch (Exception e){
       return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
-
-    // Create new user's account
-    User user = new User(signUpRequest.getUsername(),
-               signUpRequest.getEmail(),
-               encoder.encode(signUpRequest.getPassword()));
-
-    Set<String> strRoles = signUpRequest.getRole();
-    Set<Role> roles = new HashSet<>();
-
-    if (strRoles == null) {
-      Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-          .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-      roles.add(userRole);
-    } else {
-      strRoles.forEach(role -> {
-        switch (role) {
-        case "admin":
-          Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-          roles.add(adminRole);
-          break;
-        default:
-          Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-          roles.add(userRole);
-        }
-      });
-    }
-
-    user.setRoles(roles);
-    userRepository.save(user);
-
-    return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
   }
 }
