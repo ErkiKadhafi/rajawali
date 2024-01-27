@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -45,7 +46,6 @@ public class CustomExceptionHandler {
                 "Value of some fields doesn't match the requirements.",
                 errors);
     }
-
     @ExceptionHandler(value = { TypeMismatchException.class })
     public ResponseEntity<Object> handleTypeMismatchException(TypeMismatchException ex, WebRequest request) {
         return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST,
@@ -66,4 +66,12 @@ public class CustomExceptionHandler {
         // Use the existing method to generate the response
         return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "Max File 1 mb");
     }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex) {
+        return ResponseMapper.generateResponseFailed(HttpStatus.UNAUTHORIZED,
+                "Unauthorized error: Full authentication is required to access this resource",
+                ex.getMessage());
+    }
+
 }

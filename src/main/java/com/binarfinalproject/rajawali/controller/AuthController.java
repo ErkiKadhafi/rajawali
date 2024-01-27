@@ -50,7 +50,6 @@ public class AuthController {
 
   @PostMapping("/signin")
   public ResponseEntity<Object> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-
     try {
       Authentication authentication = authenticationManager.authenticate(
               new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
@@ -72,7 +71,6 @@ public class AuthController {
     } catch (Exception e){
       return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, e.getMessage());
     }
-
 
   }
 
