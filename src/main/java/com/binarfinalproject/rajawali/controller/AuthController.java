@@ -39,11 +39,6 @@ public class AuthController {
   @Autowired
   AuthenticationManager authenticationManager;
 
-
-
-  @Autowired
-  RoleRepository roleRepository;
-
   @Autowired
   private SignUpService signUpService;
 
