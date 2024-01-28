@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -94,9 +95,10 @@ public class FlightController {
             if (pageSize == null)
                 pageSize = 10;
 
-            Pageable paginationQueries = PageRequest.of(page, pageSize);
+            Pageable paginationQueries = PageRequest.of(page, pageSize, Sort.by("createdAt").descending());
             Specification<Flight> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
+                predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             });
@@ -124,7 +126,7 @@ public class FlightController {
         }
     }
 
-    @GetMapping("/depatures")
+    @GetMapping("/departures")
     public ResponseEntity<Object> getDepatureFlights(
             @RequestParam(required = true) UUID sourceAirportId,
             @RequestParam(required = true) UUID destAirportId,
@@ -148,7 +150,7 @@ public class FlightController {
             classTypeMappedAttr.put(Seat.ClassType.BUSINESS.name(), "businessAvailableSeats");
             classTypeMappedAttr.put(Seat.ClassType.FIRST.name(), "firstAvailableSeats");
 
-            Pageable paginationQueries = PageRequest.of(page, pageSize);
+            Pageable paginationQueries = PageRequest.of(page, pageSize, Sort.by("departureDate").ascending());
             Specification<Flight> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
                 predicates.add(

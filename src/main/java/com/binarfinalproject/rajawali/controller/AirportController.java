@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,9 @@ public class AirportController {
 
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Airport has successfully created!",
                     newAirport);
+        } catch (ApiException e) {
+            return ResponseMapper.generateResponseFailed(
+                    e.getStatus(), e.getMessage());
         } catch (Exception e) {
             return ResponseMapper.generateResponseFailed(
                     HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -93,7 +97,7 @@ public class AirportController {
             if (pageSize == null)
                 pageSize = 10;
 
-            Pageable paginationQueries = PageRequest.of(page, pageSize);
+            Pageable paginationQueries = PageRequest.of(page, pageSize, Sort.by("createdAt").descending());
             Specification<Airport> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
                 Predicate combinedFilterPredicates;
@@ -116,7 +120,8 @@ public class AirportController {
                 } else {
                     combinedFilterPredicates = criteriaBuilder.and(predicates.toArray(new Predicate[0]));
                 }
-                return criteriaBuilder.and(combinedFilterPredicates, criteriaBuilder.equal(root.get("isDeleted"), false));
+                return criteriaBuilder.and(combinedFilterPredicates,
+                        criteriaBuilder.equal(root.get("isDeleted"), false));
             });
             Page<ResAirportDto> products = airportService.getAllAirports(filterQueries, paginationQueries);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK,

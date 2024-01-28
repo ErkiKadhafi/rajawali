@@ -1,6 +1,7 @@
 package com.binarfinalproject.rajawali.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,7 +30,13 @@ public class AirportServiceImpl implements AirportService {
     AirportRepository airportRepository;
 
     @Override
-    public ResAirportDto createAirport(CreateAirportDto request) {
+    public ResAirportDto createAirport(CreateAirportDto request) throws ApiException {
+        List<Airport> airportOnDb = airportRepository.findByName(request.getName());
+
+        if (airportOnDb.size() > 0)
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Airport with name '" + request.getName() + "' is already exist.");
+
         Airport airport = modelMapper.map(request, Airport.class);
         ResAirportDto resAirportDto = modelMapper.map(airportRepository.save(airport), ResAirportDto.class);
 

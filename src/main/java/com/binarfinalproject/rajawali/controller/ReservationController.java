@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +49,7 @@ public class ReservationController {
             if (pageSize == null)
                 pageSize = 10;
 
-            Pageable paginationQueries = PageRequest.of(page, pageSize);
+            Pageable paginationQueries = PageRequest.of(page, pageSize, Sort.by("createdAt").descending());
             Specification<Reservation> filterQueries = ((root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
                 predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));

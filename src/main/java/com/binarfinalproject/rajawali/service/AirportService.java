@@ -13,7 +13,7 @@ import com.binarfinalproject.rajawali.entity.Airport;
 import com.binarfinalproject.rajawali.exception.ApiException;
 
 public interface AirportService {
-    public ResAirportDto createAirport(CreateAirportDto request);
+    public ResAirportDto createAirport(CreateAirportDto request) throws ApiException;
 
     public ResAirportDto updateAirport(UUID airportId, UpdateAirportDto request) throws ApiException;
 
