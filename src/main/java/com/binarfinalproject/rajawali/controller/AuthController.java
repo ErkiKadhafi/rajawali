@@ -73,11 +73,10 @@ public class AuthController {
               userDetails.getEmail(),
               roles));
     } catch (Exception e){
-      return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, e.getMessage());
+      return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "Account not found");
     }
 
   }
-
 
   @PostMapping("/signup")
   public ResponseEntity<Object> registerUser(@Valid @RequestBody CreateSignupRequest signUpRequestCreate) {
@@ -96,8 +95,6 @@ public class AuthController {
     }
 
   }
-
-
 
   @PostMapping("/enable-user")
   public ResponseEntity<Object> enableUser(@Valid @RequestBody EnableUserDto request){
