@@ -6,12 +6,21 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.binarfinalproject.rajawali.config.secuirty.JwtUtils;
+import com.binarfinalproject.rajawali.dto.auth.request.LoginRequest;
+import com.binarfinalproject.rajawali.dto.auth.response.JwtResponse;
+import com.binarfinalproject.rajawali.util.ResponseMapper;
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,9 +47,12 @@ import com.binarfinalproject.rajawali.repository.ReservationDetailsRepository;
 import com.binarfinalproject.rajawali.repository.ReservationRepository;
 import com.binarfinalproject.rajawali.repository.SeatRepository;
 import com.binarfinalproject.rajawali.service.ReservationService;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 public class ReservationServiceImpl implements ReservationService {
+
+
     @Autowired
     ModelMapper modelMapper;
 
@@ -58,6 +70,10 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Autowired
     PassengerRepository passengerRepository;
+
+
+
+
 
     @Override
     public ResAvailableSeatsDto getAvailableSeats(UUID flightId, Seat.ClassType classType) throws ApiException {

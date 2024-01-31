@@ -2,7 +2,6 @@ package com.binarfinalproject.rajawali.entity;
 
 
 import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
-import com.binarfinalproject.rajawali.enums.ERole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +22,10 @@ public class Role extends AuditModel {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
     private ERole name;
+
+    public enum ERole {
+        ROLE_USER,
+        ROLE_ADMIN
+    }
 }

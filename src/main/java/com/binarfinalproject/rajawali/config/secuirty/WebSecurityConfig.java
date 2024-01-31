@@ -1,9 +1,9 @@
-package com.binarfinalproject.rajawali.security;
+package com.binarfinalproject.rajawali.config.secuirty;
 
 
-import com.binarfinalproject.rajawali.security.jwt.AuthEntryPointJwt;
-import com.binarfinalproject.rajawali.security.jwt.AuthTokenFilter;
-import com.binarfinalproject.rajawali.security.service.UserDetailsServiceImpl;
+import com.binarfinalproject.rajawali.config.secuirty.AuthEntryPointJwt;
+import com.binarfinalproject.rajawali.config.secuirty.AuthTokenFilter;
+import com.binarfinalproject.rajawali.service.impl.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package com.binarfinalproject.rajawali.security.service;
+package com.binarfinalproject.rajawali.service.impl;
 
 
 import com.binarfinalproject.rajawali.entity.User;
@@ -16,12 +16,23 @@ public class UserDetailsServiceImpl implements UserDetailsService {
   UserRepository userRepository;
 
   @Override
-  @Transactional
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    User user = userRepository.findByUsername(username)
-        .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
+    User user = userRepository.findUserByEmail(username)
+        .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + username));
+    if (user.getIsUsed()){
+      return UserDetailsImpl.build(user);
+    } else {
+      throw  new UsernameNotFoundException("Registration has not been completed");
+    }
 
-    return UserDetailsImpl.build(user);
+  }
+
+  @Transactional
+  public User loadUserByemail(String email) throws UsernameNotFoundException {
+    User user = userRepository.findUserByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
+
+    return user;
   }
 
 }

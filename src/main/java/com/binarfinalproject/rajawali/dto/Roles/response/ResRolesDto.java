@@ -1,9 +1,10 @@
 package com.binarfinalproject.rajawali.dto.Roles.response;
 
-import com.binarfinalproject.rajawali.enums.ERole;
+
+import com.binarfinalproject.rajawali.entity.Role;
 import lombok.Data;
 
 @Data
 public class ResRolesDto {
-    private ERole name;
+    private Role.ERole name;
 }

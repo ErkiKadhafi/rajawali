@@ -1,4 +1,4 @@
-package com.binarfinalproject.rajawali.security.jwt;
+package com.binarfinalproject.rajawali.config.secuirty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;

@@ -9,11 +9,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.request.WebRequest;
 
 import com.binarfinalproject.rajawali.util.ResponseMapper;
@@ -21,7 +23,6 @@ import com.binarfinalproject.rajawali.util.ResponseMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.springframework.web.servlet.ModelAndView;
 
 @AllArgsConstructor
 class InputError {
@@ -67,10 +68,17 @@ public class CustomExceptionHandler {
         return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "Max File 1 mb");
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex) {
+    @ExceptionHandler(HttpClientErrorException.Forbidden.class)
+    public ResponseEntity<Object> handleAuthenticationCredentialsNotFoundException(HttpClientErrorException.Forbidden ex) {
+        return ResponseMapper.generateResponseFailed(HttpStatus.FORBIDDEN,
+                "ERRRRROR",
+                ex.getMessage());
+    }
+
+    @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
+    public ResponseEntity<Object> handleUnauthorizedException(HttpClientErrorException.Forbidden ex) {
         return ResponseMapper.generateResponseFailed(HttpStatus.UNAUTHORIZED,
-                "Unauthorized error: Full authentication is required to access this resource",
+                "ERRORRRSE",
                 ex.getMessage());
     }
 

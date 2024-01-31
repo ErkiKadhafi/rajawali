@@ -12,5 +12,6 @@ public class ResUserDto {
     private  String username;
     private String email;
     private String password;
+    private String handphone;
     private Set<ResRolesDto> set_roles = new HashSet<>();
 }

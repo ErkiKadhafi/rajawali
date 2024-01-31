@@ -1,4 +1,4 @@
-package com.binarfinalproject.rajawali.security.service;
+package com.binarfinalproject.rajawali.service.impl;
 
 import com.binarfinalproject.rajawali.entity.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;

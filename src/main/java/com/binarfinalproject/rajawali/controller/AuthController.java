@@ -2,18 +2,16 @@ package com.binarfinalproject.rajawali.controller;
 
 
 import com.binarfinalproject.rajawali.dto.auth.request.LoginRequest;
-import com.binarfinalproject.rajawali.dto.auth.request.SignupRequest;
+import com.binarfinalproject.rajawali.dto.auth.request.CreateSignupRequest;
 import com.binarfinalproject.rajawali.dto.auth.response.JwtResponse;
-import com.binarfinalproject.rajawali.dto.auth.response.MessageResponse;
 import com.binarfinalproject.rajawali.dto.user.ResUserDto;
-import com.binarfinalproject.rajawali.entity.Role;
-import com.binarfinalproject.rajawali.entity.User;
-import com.binarfinalproject.rajawali.enums.ERole;
-import com.binarfinalproject.rajawali.repository.RoleRepository;
-import com.binarfinalproject.rajawali.repository.UserRepository;
-import com.binarfinalproject.rajawali.security.jwt.JwtUtils;
-import com.binarfinalproject.rajawali.security.service.SignUpService;
-import com.binarfinalproject.rajawali.security.service.UserDetailsImpl;
+import com.binarfinalproject.rajawali.config.secuirty.JwtUtils;
+import com.binarfinalproject.rajawali.dto.user.request.EnableUserDto;
+import com.binarfinalproject.rajawali.dto.auth.request.ForgotPasswordSendOtpDto;
+import com.binarfinalproject.rajawali.exception.ApiException;
+import com.binarfinalproject.rajawali.service.AuthenticationService;
+import com.binarfinalproject.rajawali.service.impl.UserDetailsImpl;
+import com.binarfinalproject.rajawali.service.impl.UserDetailsServiceImpl;
 import com.binarfinalproject.rajawali.util.ResponseMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +24,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -40,7 +38,7 @@ public class AuthController {
   AuthenticationManager authenticationManager;
 
   @Autowired
-  private SignUpService signUpService;
+  private AuthenticationService authenticationService;
 
   @Autowired
   PasswordEncoder encoder;
@@ -48,11 +46,17 @@ public class AuthController {
   @Autowired
   JwtUtils jwtUtils;
 
+
+  @Autowired
+  public UserDetailsServiceImpl userDetailsService;
+
+
+
   @PostMapping("/signin")
   public ResponseEntity<Object> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
     try {
       Authentication authentication = authenticationManager.authenticate(
-              new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+              new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
       SecurityContextHolder.getContext().setAuthentication(authentication);
       String jwt = jwtUtils.generateJwtToken(authentication);
@@ -74,20 +78,16 @@ public class AuthController {
 
   }
 
-  @PostMapping("/signup")
-  public ResponseEntity<Object> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-    if (signUpService.checkUsername(signUpRequest)){
-      return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "User is already in use!");
-    }
 
-    if (signUpService.checkGmail(signUpRequest)){
-      return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "gmail is already in use!");
-    }
+  @PostMapping("/signup")
+  public ResponseEntity<Object> registerUser(@Valid @RequestBody CreateSignupRequest signUpRequestCreate) {
 
     try {
-      ResUserDto response = signUpService.createAccount(signUpRequest);
+      ResUserDto response = authenticationService.register(signUpRequestCreate);
+      Map<String, String> res = new HashMap<String, String>();
       if (Objects.nonNull(response)){
-        return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "User registered successfully!", response);
+        res.put("message", "Please check your email and enter the OTP!");
+        return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Register new account!", res);
       } else {
         return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "error");
       }
@@ -96,4 +96,31 @@ public class AuthController {
     }
 
   }
+
+
+
+  @PostMapping("/enable-user")
+  public ResponseEntity<Object> enableUser(@Valid @RequestBody EnableUserDto request){
+    Boolean statusGenerated = authenticationService.otpIsValid(request);
+    if (statusGenerated){
+      return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Register Success", request.getEmailAddress());
+    } else {
+      return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "Token is invalid or already expired");
+    }
+
+  }
+
+  @PutMapping("/regenerate-otp")
+  public ResponseEntity<Object> regenerateOTP(@RequestBody ForgotPasswordSendOtpDto mail) throws ApiException{
+    try {
+      ResUserDto response = authenticationService.regenerate(mail.getEmailAddress());
+      Map<String, String> res = new HashMap<String, String>();
+        res.put("message", "Please check your email and enter the OTP!");
+        return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "New Otp", response);
+    } catch (Exception e){
+      return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+  }
+
+
 }

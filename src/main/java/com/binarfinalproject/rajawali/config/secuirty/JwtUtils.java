@@ -1,6 +1,6 @@
-package com.binarfinalproject.rajawali.security.jwt;
+package com.binarfinalproject.rajawali.config.secuirty;
 
-import com.binarfinalproject.rajawali.security.service.UserDetailsImpl;
+import com.binarfinalproject.rajawali.service.impl.UserDetailsImpl;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

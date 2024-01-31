@@ -1,6 +1,6 @@
-package com.binarfinalproject.rajawali.security.jwt;
+package com.binarfinalproject.rajawali.config.secuirty;
 
-import com.binarfinalproject.rajawali.security.service.UserDetailsServiceImpl;
+import com.binarfinalproject.rajawali.service.impl.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
