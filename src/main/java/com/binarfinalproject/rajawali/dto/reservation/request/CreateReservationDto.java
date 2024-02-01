@@ -2,6 +2,8 @@ package com.binarfinalproject.rajawali.dto.reservation.request;
 
 import java.util.List;
 
+import org.hibernate.validator.constraints.UUID;
+
 import com.binarfinalproject.rajawali.entity.Passenger.GenderType;
 import com.binarfinalproject.rajawali.entity.Seat.ClassType;
 import com.binarfinalproject.rajawali.util.ValidateEnum;
@@ -32,6 +34,11 @@ public class CreateReservationDto {
 
     @NotBlank
     private String phoneNumber;
+
+    private String promoCode;
+
+    @UUID
+    private String userId;
 
     @NotNull
     @NotEmpty(message = "passenger list cannot be empty.")

@@ -10,4 +10,6 @@ public interface PaymentService {
     ResPaymentDto createPayment(CreatePaymentDto request) throws ApiException;
 
     ResPaymentDto finishPayment(UUID paymentId) throws ApiException;
+
+    ResPaymentDto verifyPayment(UUID paymentId) throws ApiException;
 }

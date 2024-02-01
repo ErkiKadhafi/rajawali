@@ -52,4 +52,18 @@ public class PaymentController {
             return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
+
+    @PostMapping("/{paymentId}/verify")
+    public ResponseEntity<Object> verifyPayment(@PathVariable UUID paymentId) {
+        try {
+            ResPaymentDto response = paymentService.verifyPayment(paymentId);
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Payment has successfully done!",
+                    response);
+        } catch (ApiException e) {
+            return ResponseMapper.generateResponseFailed(
+                    e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
 }

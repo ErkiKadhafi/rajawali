@@ -45,7 +45,6 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setReservation(reservationOnDb.get());
         payment.setMethod(request.getMethod());
         payment.setReceiverNumber(receiverNumber);
-        payment.setExpiredAt(LocalDateTime.now().plusMinutes(5));
 
         ResPaymentDto resPaymentDto = modelMapper.map(paymentRepository.save(payment), ResPaymentDto.class);
 
@@ -55,7 +54,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public ResPaymentDto finishPayment(UUID paymentId) throws ApiException {
         Optional<Payment> paymentOnDb = paymentRepository.findById(paymentId);
-        if (paymentOnDb.get().getExpiredAt().isBefore(LocalDateTime.now()))
+        if (paymentOnDb.isEmpty())
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Payment with id " + paymentId + " is not found.");
+
+        if (paymentOnDb.get().getReservation().getExpiredAt().isBefore(LocalDateTime.now()))
             throw new ApiException(HttpStatus.NOT_FOUND,
                     "Payment with id " + paymentOnDb.get().getId() + " is already expired");
 
@@ -65,6 +68,26 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment payment = paymentOnDb.get();
         payment.setIsPaid(true);
+        payment.setPaidAt(LocalDateTime.now());
+        ResPaymentDto resPaymentDto = modelMapper.map(paymentRepository.save(payment), ResPaymentDto.class);
+
+        return resPaymentDto;
+    }
+
+    @Override
+    public ResPaymentDto verifyPayment(UUID paymentId) throws ApiException {
+        Optional<Payment> paymentOnDb = paymentRepository.findById(paymentId);
+        if (paymentOnDb.isEmpty())
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Payment with id " + paymentId + " is not found.");
+
+        if (!paymentOnDb.get().getIsPaid())
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Payment with id " + paymentOnDb.get().getId() + " is not paid yet!");
+
+        Payment payment = paymentOnDb.get();
+        payment.setIsVerified(true);
+        payment.setVerifiedAt(LocalDateTime.now());
         ResPaymentDto resPaymentDto = modelMapper.map(paymentRepository.save(payment), ResPaymentDto.class);
 
         return resPaymentDto;

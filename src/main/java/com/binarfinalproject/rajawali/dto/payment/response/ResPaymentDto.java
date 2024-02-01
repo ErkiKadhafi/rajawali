@@ -18,6 +18,8 @@ class ResPaymentReservationDto {
     private String phoneNumber;
 
     private double totalPrice;
+
+    private LocalDateTime expiredAt;
 }
 
 @Data
@@ -32,5 +34,13 @@ public class ResPaymentDto {
 
     private Boolean isPaid;
 
-    private LocalDateTime expiredAt;
+    private Boolean isVerified;
+
+    private LocalDateTime paidAt;
+
+    private LocalDateTime verifiedAt;
+
+    private LocalDateTime createdAt;
+    
+    private LocalDateTime updatedAt;
 }

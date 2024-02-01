@@ -3,6 +3,7 @@ package com.binarfinalproject.rajawali.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.SQLDelete;
@@ -21,6 +22,10 @@ public class Reservation extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "promo_id", referencedColumnName = "id")
+    private Promo promo;
 
     @OneToOne(mappedBy = "reservation")
     private Payment payment;
@@ -43,4 +48,7 @@ public class Reservation extends AuditModel {
     private String phoneNumber;
 
     private double totalPrice;
+
+    @Column(name = "expired_at")
+    private LocalDateTime expiredAt;
 }

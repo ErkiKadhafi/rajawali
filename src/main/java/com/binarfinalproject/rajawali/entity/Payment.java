@@ -31,9 +31,15 @@ public class Payment extends AuditModel {
     @Column(name = "receiver_number")
     private String receiverNumber;
 
-    @Column(name = "expired_at")
-    private LocalDateTime expiredAt;
-    
     @Column(name = "is_paid")
-    private Boolean isPaid;
+    private Boolean isPaid = false;
+
+    @Column(name = "is_Verified")
+    private Boolean isVerified = false;
+
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
+    @Column(name = "verified_at")
+    private LocalDateTime verifiedAt;
 }

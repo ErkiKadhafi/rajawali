@@ -1,5 +1,6 @@
 package com.binarfinalproject.rajawali.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import com.binarfinalproject.rajawali.entity.Flight;
 import com.binarfinalproject.rajawali.entity.Meal;
 import com.binarfinalproject.rajawali.entity.Passenger;
 import com.binarfinalproject.rajawali.entity.PassengerMeal;
+import com.binarfinalproject.rajawali.entity.Promo;
 import com.binarfinalproject.rajawali.entity.Reservation;
 import com.binarfinalproject.rajawali.entity.ReservationDetails;
 import com.binarfinalproject.rajawali.entity.Seat;
@@ -42,6 +44,7 @@ import com.binarfinalproject.rajawali.repository.MealRepository;
 import com.binarfinalproject.rajawali.repository.PassengerMealRepository;
 import com.binarfinalproject.rajawali.repository.PassengerRepository;
 import com.binarfinalproject.rajawali.repository.PaymentRepository;
+import com.binarfinalproject.rajawali.repository.PromoRepository;
 import com.binarfinalproject.rajawali.repository.ReservationDetailsRepository;
 import com.binarfinalproject.rajawali.repository.ReservationRepository;
 import com.binarfinalproject.rajawali.repository.SeatRepository;
@@ -75,6 +78,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Autowired
     PaymentRepository paymentRepository;
+
+    @Autowired
+    PromoRepository promoRepository;
 
     @Override
     public ResAvailableSeatsDto getAvailableSeats(UUID flightId, Seat.ClassType classType) throws ApiException {
@@ -243,7 +249,15 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         // map the response
+        if (request.getPromoCode() != null && request.getPromoCode() != "") {
+            Optional<Promo> promoOnDb = promoRepository.findByCode(request.getPromoCode());
+            if (promoOnDb.isEmpty())
+                throw new ApiException(HttpStatus.NOT_FOUND,
+                        "Promo code '" + request.getPromoCode() + "' is not found.");
+            totalPriceAllFlights -= totalPriceAllFlights * promoOnDb.get().getDiscountPercentage();
+        }
         savedReservation.setTotalPrice(totalPriceAllFlights);
+        savedReservation.setExpiredAt(LocalDateTime.now().plusMinutes(5));
         reservationRepository.save(savedReservation);
         List<ResPassengerDto> resPassengerListDto = new ArrayList<>();
         request.getPassengerList().forEach(p -> resPassengerListDto.add(modelMapper.map(p, ResPassengerDto.class)));
