@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +33,10 @@ public class AirplaneController {
     @Autowired
     AirplaneService airplaneService;
 
-    @Autowired
-    ModelMapper modelMapper;
+
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> createAirplane(@Valid @RequestBody CreateAirplaneDto request) {
         try {
             ResAirplaneDto response = airplaneService.createAirplane(request);
