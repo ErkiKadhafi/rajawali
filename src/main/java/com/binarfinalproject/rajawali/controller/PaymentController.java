@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,11 +54,27 @@ public class PaymentController {
         }
     }
 
-    @PostMapping("/{paymentId}/verify")
-    public ResponseEntity<Object> verifyPayment(@PathVariable UUID paymentId) {
+    @PostMapping("/{paymentId}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Object> approvePayment(@PathVariable UUID paymentId) {
         try {
-            ResPaymentDto response = paymentService.verifyPayment(paymentId);
+            ResPaymentDto response = paymentService.approvePayment(paymentId);
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Payment has successfully done!",
+                    response);
+        } catch (ApiException e) {
+            return ResponseMapper.generateResponseFailed(
+                    e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @PostMapping("/{paymentId}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Object> rejectPayment(@PathVariable UUID paymentId) {
+        try {
+            ResPaymentDto response = paymentService.rejectPayment(paymentId);
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK, "Payment has successfully rejected!",
                     response);
         } catch (ApiException e) {
             return ResponseMapper.generateResponseFailed(

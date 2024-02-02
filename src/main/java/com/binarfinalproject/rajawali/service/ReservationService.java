@@ -18,6 +18,8 @@ public interface ReservationService {
     Page<ResListReservationDto> getAllReservations(Specification<Reservation> filterQueries, Pageable paginationQueries)
             throws ApiException;
 
+    ResReservationDto getReservationById(UUID reservationId) throws ApiException;
+
     ResAvailableSeatsDto getAvailableSeats(UUID flightId, Seat.ClassType classType) throws ApiException;
 
     ResReservationDto createReservation(CreateReservationDto request) throws ApiException;

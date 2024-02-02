@@ -11,5 +11,7 @@ public interface PaymentService {
 
     ResPaymentDto finishPayment(UUID paymentId) throws ApiException;
 
-    ResPaymentDto verifyPayment(UUID paymentId) throws ApiException;
+    ResPaymentDto approvePayment(UUID paymentId) throws ApiException;
+
+    ResPaymentDto rejectPayment(UUID paymentId) throws ApiException;
 }

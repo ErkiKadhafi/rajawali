@@ -1,20 +1,23 @@
 package com.binarfinalproject.rajawali.service;
 
-import com.binarfinalproject.rajawali.dto.auth.request.CreateSignupRequest;
-import com.binarfinalproject.rajawali.dto.auth.request.LoginRequest;
-import com.binarfinalproject.rajawali.dto.auth.response.JwtResponse;
-import com.binarfinalproject.rajawali.dto.user.ResUserDto;
-import com.binarfinalproject.rajawali.dto.user.request.EnableUserDto;
+import java.util.Map;
+
+import com.binarfinalproject.rajawali.dto.auth.request.EnableUserDto;
+import com.binarfinalproject.rajawali.dto.auth.request.ForgotPasswordDto;
+import com.binarfinalproject.rajawali.dto.auth.request.ForgotPasswordSendOtpDto;
+import com.binarfinalproject.rajawali.dto.auth.request.SigninDto;
+import com.binarfinalproject.rajawali.dto.auth.request.SignupDto;
+import com.binarfinalproject.rajawali.dto.auth.response.ResAuthenticationDto;
 import com.binarfinalproject.rajawali.exception.ApiException;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import org.springframework.web.bind.annotation.RequestBody;
 
 public interface AuthenticationService {
-    public ResUserDto register(@NotNull CreateSignupRequest signupRequest) throws ApiException;
-    public Integer createRandomOneTimePassword();
+    public Map<String, String> registerUser(SignupDto request) throws ApiException;
 
-    public Boolean otpIsValid(EnableUserDto request);
-    public ResUserDto regenerate(String email) throws ApiException;
+    public ResAuthenticationDto enableUser(EnableUserDto request) throws ApiException;
 
+    public ResAuthenticationDto authenticateUser(SigninDto request) throws ApiException;
+
+    public Map<String, String> forgotPasswordSendOtp(ForgotPasswordSendOtpDto request) throws ApiException;
+
+    public Map<String, String> forgotPassword(ForgotPasswordDto request) throws ApiException;
 }

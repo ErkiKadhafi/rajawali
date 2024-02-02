@@ -157,8 +157,13 @@ public class FlightController {
                         criteriaBuilder.greaterThanOrEqualTo(root.get("departureDate"), departureDate.atStartOfDay()));
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("departureDate"),
                         departureDate.atTime(LocalTime.MAX)));
+
                 predicates.add(criteriaBuilder.equal(root.get("sourceAirport").get("id"), sourceAirportId));
+                predicates.add(criteriaBuilder.equal(root.get("sourceAirport").get("isDeleted"), false));
+
                 predicates.add(criteriaBuilder.equal(root.get("destinationAirport").get("id"), destAirportId));
+                predicates.add(criteriaBuilder.equal(root.get("destinationAirport").get("isDeleted"), false));
+
                 predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

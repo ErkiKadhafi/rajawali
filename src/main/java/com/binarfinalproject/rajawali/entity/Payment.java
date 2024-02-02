@@ -34,8 +34,8 @@ public class Payment extends AuditModel {
     @Column(name = "is_paid")
     private Boolean isPaid = false;
 
-    @Column(name = "is_Verified")
-    private Boolean isVerified = false;
+    @Column(name = "is_approved")
+    private Boolean isApproved;
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;

@@ -9,7 +9,6 @@ import com.binarfinalproject.rajawali.service.AirplaneService;
 import com.binarfinalproject.rajawali.util.ResponseMapper;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,8 +32,6 @@ public class AirplaneController {
     @Autowired
     AirplaneService airplaneService;
 
-
-
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> createAirplane(@Valid @RequestBody CreateAirplaneDto request) {
@@ -51,6 +48,7 @@ public class AirplaneController {
     }
 
     @PutMapping("/{airplaneId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> updateAirplane(@PathVariable UUID airplaneId,
             @Valid @RequestBody UpdateAirplaneDto request) {
         try {
@@ -100,8 +98,8 @@ public class AirplaneController {
                     predicates.add(
                             criteriaBuilder.like(criteriaBuilder.lower(root.get("airplaneCode")), "%" +
                                     airplaneCode.toLowerCase() + "%"));
-                    predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
                 }
+                predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 
                 return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             });
@@ -116,6 +114,7 @@ public class AirplaneController {
     }
 
     @DeleteMapping("/{airplaneId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> deleteAirplane(@PathVariable UUID airplaneId) {
         try {
             ResAirplaneDto response = airplaneService.deleteAirplane(airplaneId);

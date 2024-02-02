@@ -9,17 +9,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.request.WebRequest;
 
 import com.binarfinalproject.rajawali.util.ResponseMapper;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -47,6 +47,7 @@ public class CustomExceptionHandler {
                 "Value of some fields doesn't match the requirements.",
                 errors);
     }
+
     @ExceptionHandler(value = { TypeMismatchException.class })
     public ResponseEntity<Object> handleTypeMismatchException(TypeMismatchException ex, WebRequest request) {
         return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST,
@@ -54,32 +55,37 @@ public class CustomExceptionHandler {
                         + ex.getRequiredType().getSimpleName());
     }
 
+    @ExceptionHandler(value = { MaxUploadSizeExceededException.class })
+    public ResponseEntity<Object> handleMaxUploadSizeExceededException(HttpServletRequest request,
+            HttpServletResponse response,
+            MaxUploadSizeExceededException exception) throws IOException {
+
+        return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "Max File 1 mb");
+    }
+
+    @ExceptionHandler(value = { ExpiredJwtException.class })
+    public ResponseEntity<Object> handleExpiredJwtException(ExpiredJwtException ex, WebRequest request) {
+        return ResponseMapper.generateResponseFailed(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(value = { MalformedJwtException.class })
+    public ResponseEntity<Object> handleMalformedJwtException(MalformedJwtException ex, WebRequest request) {
+        return ResponseMapper.generateResponseFailed(HttpStatus.FORBIDDEN,
+                "Your JWT token is invalid : " + ex.getMessage());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> accessDeniedException(AccessDeniedException ex, WebRequest request)
+            throws AccessDeniedException {
+        return ResponseMapper.generateResponseFailed(HttpStatus.FORBIDDEN,
+                "You don't have the required permission to access this resource " + ex.getMessage());
+    }
+
     @ExceptionHandler(value = { Exception.class })
     public ResponseEntity<Object> handleOtherExceptions(Exception ex, WebRequest request) {
         log.error("Error : " + ex);
         return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR,
                 "There is something wrong : " + ex.getMessage());
-    }
-    @ExceptionHandler(value = {MaxUploadSizeExceededException.class})
-    public ResponseEntity<Object> handleMaxUploadSizeExceededException(HttpServletRequest request, HttpServletResponse response,
-                                                                       MaxUploadSizeExceededException exception) throws IOException {
-
-        // Use the existing method to generate the response
-        return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "Max File 1 mb");
-    }
-
-    @ExceptionHandler(HttpClientErrorException.Forbidden.class)
-    public ResponseEntity<Object> handleAuthenticationCredentialsNotFoundException(HttpClientErrorException.Forbidden ex) {
-        return ResponseMapper.generateResponseFailed(HttpStatus.FORBIDDEN,
-                "ERRRRROR",
-                ex.getMessage());
-    }
-
-    @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
-    public ResponseEntity<Object> handleUnauthorizedException(HttpClientErrorException.Forbidden ex) {
-        return ResponseMapper.generateResponseFailed(HttpStatus.UNAUTHORIZED,
-                "ERRORRRSE",
-                ex.getMessage());
     }
 
 }

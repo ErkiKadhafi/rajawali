@@ -32,15 +32,13 @@ public class ResPaymentDto {
 
     private String receiverNumber;
 
-    private Boolean isPaid;
-
-    private Boolean isVerified;
+    private String paymentStatus;
 
     private LocalDateTime paidAt;
 
     private LocalDateTime verifiedAt;
 
     private LocalDateTime createdAt;
-    
+
     private LocalDateTime updatedAt;
 }

@@ -1,27 +1,19 @@
 package com.binarfinalproject.rajawali.service.impl;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.binarfinalproject.rajawali.config.secuirty.JwtUtils;
-import com.binarfinalproject.rajawali.dto.auth.request.LoginRequest;
-import com.binarfinalproject.rajawali.dto.auth.response.JwtResponse;
-import com.binarfinalproject.rajawali.util.ResponseMapper;
-import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,17 +31,22 @@ import com.binarfinalproject.rajawali.dto.reservation.response.ResReservationDto
 import com.binarfinalproject.rajawali.dto.seat.response.ResSeatDto;
 import com.binarfinalproject.rajawali.entity.Flight;
 import com.binarfinalproject.rajawali.entity.Meal;
+import com.binarfinalproject.rajawali.entity.Notification;
 import com.binarfinalproject.rajawali.entity.Passenger;
 import com.binarfinalproject.rajawali.entity.PassengerMeal;
+import com.binarfinalproject.rajawali.entity.Payment;
 import com.binarfinalproject.rajawali.entity.Promo;
 import com.binarfinalproject.rajawali.entity.Reservation;
 import com.binarfinalproject.rajawali.entity.ReservationDetails;
 import com.binarfinalproject.rajawali.entity.Seat;
+import com.binarfinalproject.rajawali.entity.User;
+import com.binarfinalproject.rajawali.entity.Notification.NotificationType;
 import com.binarfinalproject.rajawali.entity.Passenger.AgeType;
 import com.binarfinalproject.rajawali.entity.Seat.ClassType;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.repository.FlightRepository;
 import com.binarfinalproject.rajawali.repository.MealRepository;
+import com.binarfinalproject.rajawali.repository.NotificationRepository;
 import com.binarfinalproject.rajawali.repository.PassengerMealRepository;
 import com.binarfinalproject.rajawali.repository.PassengerRepository;
 import com.binarfinalproject.rajawali.repository.PaymentRepository;
@@ -57,12 +54,11 @@ import com.binarfinalproject.rajawali.repository.PromoRepository;
 import com.binarfinalproject.rajawali.repository.ReservationDetailsRepository;
 import com.binarfinalproject.rajawali.repository.ReservationRepository;
 import com.binarfinalproject.rajawali.repository.SeatRepository;
+import com.binarfinalproject.rajawali.repository.UserRepository;
 import com.binarfinalproject.rajawali.service.ReservationService;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 public class ReservationServiceImpl implements ReservationService {
-
 
     @Autowired
     ModelMapper modelMapper;
@@ -93,6 +89,12 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Autowired
     PromoRepository promoRepository;
+
+    @Autowired
+    NotificationRepository notificationRepository;
+
+    @Autowired
+    UserRepository userRepository;
 
     @Override
     public ResAvailableSeatsDto getAvailableSeats(UUID flightId, Seat.ClassType classType) throws ApiException {
@@ -148,8 +150,29 @@ public class ReservationServiceImpl implements ReservationService {
     @Transactional(rollbackFor = { ApiException.class, Exception.class })
     @Override
     public ResReservationDto createReservation(CreateReservationDto request) throws ApiException {
-        // store the reservation based on contact details
         Reservation reservation = modelMapper.map(request, Reservation.class);
+        if (request.getUserId() != null && request.getUserId() != "") {
+            Optional<User> userOnDb = userRepository.findById(UUID.fromString(request.getUserId()));
+            if (userOnDb.isEmpty())
+                throw new ApiException(HttpStatus.NOT_FOUND,
+                        "User with id " + request.getUserId() + " is not found.");
+
+            reservation.setUser(userOnDb.get());
+
+            String dateFormatted = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now());
+            Notification notification = new Notification();
+            notification.setUser(userOnDb.get());
+            notification.setNotificationType(NotificationType.CREATE_RESERVATION);
+            notification.setDescription(
+                    "You just created a reservation on " + dateFormatted
+                            + ", check your reservation history to choose your payment method!");
+            notificationRepository.save(notification);
+
+            User user = userOnDb.get();
+            user.setNotificationIsSeen(false);
+            userRepository.save(user);
+
+        }
         Reservation savedReservation = reservationRepository.saveAndFlush(reservation);
         double totalPriceAllFlights = 0;
 
@@ -213,6 +236,7 @@ public class ReservationServiceImpl implements ReservationService {
                 Passenger passenger = modelMapper.map(request.getPassengerList().get(index), Passenger.class);
                 passenger.setReservationDetails(reservationDetails);
                 passenger.setSeat(seatOnDb.get());
+                passenger.setBagageAddOns(pdd.getBagageAddOns());
                 Passenger savedPassenger = passengerRepository.saveAndFlush(passenger);
 
                 totalPrice += pdd.getBagageAddOns() * 50000;
@@ -260,13 +284,13 @@ public class ReservationServiceImpl implements ReservationService {
             listResFlightDtos.add(resFlightDetailsDto);
         }
 
-        // map the response
         if (request.getPromoCode() != null && request.getPromoCode() != "") {
             Optional<Promo> promoOnDb = promoRepository.findByCode(request.getPromoCode());
             if (promoOnDb.isEmpty())
                 throw new ApiException(HttpStatus.NOT_FOUND,
                         "Promo code '" + request.getPromoCode() + "' is not found.");
             totalPriceAllFlights -= totalPriceAllFlights * promoOnDb.get().getDiscountPercentage();
+            savedReservation.setPromo(promoOnDb.get());
         }
         savedReservation.setTotalPrice(totalPriceAllFlights);
         savedReservation.setExpiredAt(LocalDateTime.now().plusMinutes(5));
@@ -276,6 +300,8 @@ public class ReservationServiceImpl implements ReservationService {
 
         ResReservationDto resReservationDto = modelMapper.map(reservationRepository.save(savedReservation),
                 ResReservationDto.class);
+
+        resReservationDto.setPaymentStatus("Waiting for Payment");
         resReservationDto.setFlightDetailList(listResFlightDtos);
         resReservationDto.setPassengers(resPassengerListDto);
         resReservationDto.setTotalPrice(totalPriceAllFlights);
@@ -287,9 +313,107 @@ public class ReservationServiceImpl implements ReservationService {
     public Page<ResListReservationDto> getAllReservations(Specification<Reservation> filterQueries,
             Pageable paginationQueries) throws ApiException {
         Page<Reservation> reservations = reservationRepository.findAll(filterQueries, paginationQueries);
+
         Page<ResListReservationDto> reservationsDto = reservations
-                .map(productEntity -> modelMapper.map(productEntity, ResListReservationDto.class));
+                .map(reservationEntity -> {
+                    ResListReservationDto resListReservationDto = modelMapper.map(reservationEntity,
+                            ResListReservationDto.class);
+                    Payment payment = reservationEntity.getPayment();
+                    if (payment != null) {
+                        if (!payment.getIsPaid()) {
+                            if (payment.getReservation().getExpiredAt().isAfter(LocalDateTime.now()))
+                                resListReservationDto.setPaymentStatus("Waiting for Payment");
+                            else
+                                resListReservationDto.setPaymentStatus("Purchase Canceled");
+                        } else if (payment.getIsApproved() == null)
+                            resListReservationDto.setPaymentStatus("Purchase Pending");
+                        else if (payment.getIsApproved() == true)
+                            resListReservationDto.setPaymentStatus("Purchase Successful");
+                        else if (payment.getIsApproved() == false)
+                            resListReservationDto.setPaymentStatus("Purchase Canceled");
+                    }
+
+                    return resListReservationDto;
+                });
+
         return reservationsDto;
+    }
+
+    @Override
+    public ResReservationDto getReservationById(UUID reservationId) throws ApiException {
+        Optional<Reservation> reservationOnDb = reservationRepository.findById(reservationId);
+        if (reservationOnDb.isEmpty())
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Reservation with id '" + reservationId + "' is not found.");
+
+        ResReservationDto resReservationDto = modelMapper.map(reservationOnDb.get(),
+                ResReservationDto.class);
+
+        Payment payment = reservationOnDb.get().getPayment();
+        if (payment != null) {
+            if (!payment.getIsPaid()) {
+                if (payment.getReservation().getExpiredAt().isAfter(LocalDateTime.now()))
+                    resReservationDto.setPaymentStatus("Waiting for Payment");
+                else
+                    resReservationDto.setPaymentStatus("Purchase Canceled");
+            } else if (payment.getIsApproved() == null)
+                resReservationDto.setPaymentStatus("Purchase Pending");
+            else if (payment.getIsApproved() == true)
+                resReservationDto.setPaymentStatus("Purchase Successful");
+            else if (payment.getIsApproved() == false)
+                resReservationDto.setPaymentStatus("Purchase Canceled");
+        }
+
+        List<ReservationDetails> reservationDetails = reservationDetailsRepository
+                .findByReservationId(reservationOnDb.get().getId());
+
+        List<Passenger> passengers = passengerRepository
+                .findPassengersGroupedByReservationDetailsId(reservationDetails.get(0).getId());
+        List<ResPassengerDto> passengerDtos = passengers
+                .stream()
+                .map(p -> {
+                    ResPassengerDto resPassengerDto = modelMapper
+                            .map(p, ResPassengerDto.class);
+                    return resPassengerDto;
+                })
+                .collect(Collectors.toList());
+
+        resReservationDto.setPassengers(passengerDtos);
+
+        resReservationDto.setFlightDetailList(reservationDetails.stream().map(rd -> {
+            ResFlightDetailsDto resFlightDetailsDto = modelMapper.map(rd, ResFlightDetailsDto.class);
+            resFlightDetailsDto.setFlightId(rd.getFlight().getId().toString());
+
+            List<ResPassengerDetailsDto> resPassengerDetailsDtoList = rd
+                    .getPassengers()
+                    .stream()
+                    .map(p -> {
+                        ResPassengerDetailsDto resPassengerDetailsDto = modelMapper.map(p,
+                                ResPassengerDetailsDto.class);
+                        resPassengerDetailsDto.setSeatId(p.getSeat().getId().toString());
+
+                        List<ResPassengerMealDto> resPassengerMealDtos = p.getPassengerMeals()
+                                .stream()
+                                .map(pm -> {
+                                    ResPassengerMealDto resPassengerMealDto = modelMapper.map(pm,
+                                            ResPassengerMealDto.class);
+                                    resPassengerMealDto.setName(pm.getMeal().getName());
+                                    resPassengerMealDto.setPrice(pm.getMeal().getPrice());
+                                    return resPassengerMealDto;
+                                })
+                                .collect(Collectors.toList());
+
+                        resPassengerDetailsDto.setMealsAddOns(resPassengerMealDtos);
+
+                        return resPassengerDetailsDto;
+                    })
+                    .collect(Collectors.toList());
+            resFlightDetailsDto.setPassengerDetailList(resPassengerDetailsDtoList);
+
+            return resFlightDetailsDto;
+        }).collect(Collectors.toList()));
+
+        return resReservationDto;
     }
 
 }

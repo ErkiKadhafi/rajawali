@@ -10,8 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.binarfinalproject.rajawali.entity.Meal;
 import com.binarfinalproject.rajawali.entity.Promo;
+import com.binarfinalproject.rajawali.entity.Role;
 import com.binarfinalproject.rajawali.repository.MealRepository;
 import com.binarfinalproject.rajawali.repository.PromoRepository;
+import com.binarfinalproject.rajawali.repository.RoleRepository;
 
 @Component
 public class DatabaseSeeder implements ApplicationListener<ContextRefreshedEvent> {
@@ -23,11 +25,17 @@ public class DatabaseSeeder implements ApplicationListener<ContextRefreshedEvent
         @Autowired
         PromoRepository promoRepository;
 
+        @Autowired
+        RoleRepository roleRepository;
+
         @Override
         @Transactional
         public void onApplicationEvent(ContextRefreshedEvent event) {
                 if (alreadySetup)
                         return;
+                createRoleIfNotFound("ROLE_ADMIN");
+                createRoleIfNotFound("ROLE_USER");
+
                 createMealIfNotFound("Vegetarian Lasagna", "Vegetarian lasagna with tomato sauce and parsley.", 55500.0,
                                 "https://res.cloudinary.com/dgz5wnwsy/image/upload/v1705902318/rajawali/Rectangle_208_csq4rk.png");
                 createMealIfNotFound("Tiramisu Cake", "Find a sweetm creamy, and coffe flavor in this soft tiramisu.",
@@ -61,6 +69,18 @@ public class DatabaseSeeder implements ApplicationListener<ContextRefreshedEvent
                 createPromoIfNotFound("RQ_BAIKHTI", 0.25, "Promo spesial menjelang ramadhan", "");
 
                 alreadySetup = true;
+        }
+
+        @Transactional
+        Role createRoleIfNotFound(String name) {
+                Optional<Role> roleOnDb = roleRepository.findByName(name);
+                if (roleOnDb.isPresent())
+                        return roleOnDb.get();
+
+                Role role = new Role();
+                role.setName(name);
+
+                return roleRepository.save(role);
         }
 
         @Transactional

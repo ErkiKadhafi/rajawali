@@ -7,10 +7,10 @@ import org.springframework.stereotype.Repository;
 
 import com.binarfinalproject.rajawali.entity.Airport;
 
-import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AirportRepository extends SoftDeleteRepository<Airport, UUID> {
     @Query("select e from #{#entityName} e where e.isDeleted = false and e.name = ?1")
-    List<Airport> findByName(String name);
+    Optional<Airport> findByName(String name);
 }

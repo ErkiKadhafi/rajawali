@@ -1,18 +1,24 @@
 package com.binarfinalproject.rajawali.dto.airport.request;
 
-import java.util.Optional;
-
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class UpdateAirportDto {
+    @NotBlank
+    private String name;
 
-    private Optional<String> name;
+    @NotBlank
+    @Size(min = 3, message = "must has 3 characters")
+    private String country;
 
-    private Optional<@Size(min = 3, message = "must has 3 characters") String> country;
+    @NotBlank
+    @Size(min = 3, message = "must has min 3 characters")
+    private String city;
 
-    private Optional<@Size(min = 3, message = "must has min 3 characters") String> city;
-
-    private Optional<@Size(min = 3, message = "must has 3 characters") @Size(max = 3, message = "must has 3 characters") String> cityCode;
+    @NotBlank
+    @Size(min = 3, message = "must has 3 characters")
+    @Size(max = 3, message = "must has 3 characters")
+    private String cityCode;
 }

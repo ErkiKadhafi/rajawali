@@ -1,7 +1,6 @@
 package com.binarfinalproject.rajawali.service.impl;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,9 +30,9 @@ public class AirportServiceImpl implements AirportService {
 
     @Override
     public ResAirportDto createAirport(CreateAirportDto request) throws ApiException {
-        List<Airport> airportOnDb = airportRepository.findByName(request.getName());
+        Optional<Airport> airportOnDb = airportRepository.findByName(request.getName());
 
-        if (airportOnDb.size() > 0)
+        if (airportOnDb.isPresent())
             throw new ApiException(HttpStatus.NOT_FOUND,
                     "Airport with name '" + request.getName() + "' is already exist.");
 
@@ -52,14 +51,10 @@ public class AirportServiceImpl implements AirportService {
                     "Airport with id " + airportId + " is not found.");
 
         Airport existedAirport = airportOnDb.get();
-        if (request.getName().isPresent())
-            existedAirport.setName(request.getName().get());
-        if (request.getCountry().isPresent())
-            existedAirport.setCountry(request.getCountry().get());
-        if (request.getCity().isPresent())
-            existedAirport.setCity(request.getCity().get());
-        if (request.getCityCode().isPresent())
-            existedAirport.setCityCode(request.getCityCode().get());
+        existedAirport.setName(request.getName());
+        existedAirport.setCountry(request.getCountry());
+        existedAirport.setCity(request.getCity());
+        existedAirport.setCityCode(request.getCityCode());
 
         ResAirportDto resAirportDto = modelMapper.map(airportRepository.save(existedAirport),
                 ResAirportDto.class);

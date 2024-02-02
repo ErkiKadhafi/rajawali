@@ -6,8 +6,28 @@ import java.util.List;
 import lombok.Data;
 
 @Data
+class ResReservationPromo {
+    private String code;
+
+    private Double discountPercentage;
+}
+
+@Data
+class ResReservationUser {
+    private String id;
+
+    private String fullName;
+
+    private String email;
+}
+
+@Data
 public class ResReservationDto {
     private String id;
+
+    private ResReservationUser user;
+
+    private ResReservationPromo promo;
 
     private String classType;
 
@@ -20,6 +40,8 @@ public class ResReservationDto {
     private String phoneNumber;
 
     private Double totalPrice;
+
+    private String paymentStatus;
 
     private List<ResPassengerDto> passengers;
 

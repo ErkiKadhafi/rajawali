@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,8 +60,56 @@ public class ReservationController {
                     paginationQueries);
 
             return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
-                    "The available seats has successfully created!",
+                    "The reservations has successfully fetched!",
                     reservations);
+        } catch (ApiException e) {
+            return ResponseMapper.generateResponseFailed(
+                    e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Object> getAllUserReservations(
+            @PathVariable UUID userId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer pageSize) {
+        try {
+            if (page == null)
+                page = 0;
+            if (pageSize == null)
+                pageSize = 10;
+
+            Pageable paginationQueries = PageRequest.of(page, pageSize, Sort.by("createdAt").descending());
+            Specification<Reservation> filterQueries = ((root, query, criteriaBuilder) -> {
+                List<Predicate> predicates = new ArrayList<>();
+                predicates.add(criteriaBuilder.equal(root.get("user").get("id"), userId));
+                predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
+                return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            });
+            Page<ResListReservationDto> reservations = reservationService.getAllReservations(filterQueries,
+                    paginationQueries);
+
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
+                    "The user reservations has successfully fetched!",
+                    reservations);
+        } catch (ApiException e) {
+            return ResponseMapper.generateResponseFailed(
+                    e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @GetMapping("/{reservationId}")
+    public ResponseEntity<Object> getReservationDetails(@PathVariable UUID reservationId) {
+        try {
+            ResReservationDto response = reservationService.getReservationById(reservationId);
+            return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
+                    "The available seats has successfully fetched!",
+                    response);
         } catch (ApiException e) {
             return ResponseMapper.generateResponseFailed(
                     e.getStatus(), e.getMessage());

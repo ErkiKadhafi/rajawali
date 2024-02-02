@@ -5,8 +5,37 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
+class ResListReservationPromo {
+    private String code;
+
+    private Double discountPercentage;
+}
+
+@Data
+class ResListReservationUser {
+    private String id;
+
+    private String fullName;
+
+    private String email;
+}
+
+@Data
+class ResListReservationPayment {
+    private String id;
+
+    private Boolean isPaid;
+}
+
+@Data
 public class ResListReservationDto {
     private String id;
+
+    private ResListReservationPromo promo;
+
+    private ResListReservationUser user;
+
+    private String paymentStatus;
 
     private String classType;
 

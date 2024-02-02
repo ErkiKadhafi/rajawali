@@ -3,33 +3,69 @@ package com.binarfinalproject.rajawali.dto.flight.request;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.hibernate.validator.constraints.UUID;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 @Data
 public class UpdateFlightDto {
-    private Optional<@UUID String> sourceAirportId;
+    @NotBlank
+    @UUID
+    private String sourceAirportId;
 
-    private Optional<@UUID String> destinationAirportId;
+    @NotBlank
+    @UUID
+    private String destinationAirportId;
 
-    private Optional<@UUID String> airplaneId;
+    @NotBlank
+    private String sourceTerminal;
 
-    private Optional<String> sourceTerminal;
+    @NotBlank
+    private String destinationTerminal;
 
-    private Optional<String> destinationTerminal;
+    @NotBlank
+    @UUID
+    private String airplaneId;
 
-    private Optional<LocalDateTime> departureDate;
+    @NotBlank
+    private String thumbnailUrl;
 
-    private Optional<LocalDateTime> arrivalDate;
+    @NotNull
+    private LocalDateTime departureDate;
 
-    private Optional<Double> economySeatsPrice;
+    @NotNull
+    private LocalDateTime arrivalDate;
 
-    private Optional<Double> businessSeatsPrice;
+    @NotNull
+    @DecimalMin("300000.0")
+    @DecimalMax("1000000.0")
+    private Double economySeatsPrice;
 
-    private Optional<Double> firstSeatsPrice;
+    @NotNull
+    @DecimalMin("500000.0")
+    @DecimalMax("1500000.0")
+    private Double businessSeatsPrice;
 
-    private Optional<Double> discount;
+    @NotNull
+    @DecimalMin("750000.0")
+    @DecimalMax("2000000.0")
+    private Double firstSeatsPrice;
 
-    private Optional<Integer> points;
+    @NotNull
+    @DecimalMin("0.0")
+    @DecimalMax("1.0")
+    private Double discount;
+
+    @NotNull
+    @Positive
+    @Min(10000)
+    @Max(100000)
+    private Integer points;
 }

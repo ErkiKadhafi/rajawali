@@ -1,31 +1,29 @@
 package com.binarfinalproject.rajawali.entity;
 
-
-import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.*;
 
+import java.util.Collection;
 import java.util.UUID;
 
-@Setter
+import org.hibernate.annotations.SQLDelete;
+
+import com.binarfinalproject.rajawali.entity.auditModel.AuditModel;
+
 @Getter
+@Setter
 @NoArgsConstructor
-@Accessors(chain = true)
+@AllArgsConstructor
 @Entity
 @Table(name = "roles")
+@SQLDelete(sql = "UPDATE meals SET is_deleted = true WHERE id = ?")
 public class Role extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Enumerated(EnumType.STRING)
-    private ERole name;
+    @ManyToMany(mappedBy = "roles")
+    private Collection<User> users;
 
-    public enum ERole {
-        ROLE_USER,
-        ROLE_ADMIN
-    }
+    private String name;
 }

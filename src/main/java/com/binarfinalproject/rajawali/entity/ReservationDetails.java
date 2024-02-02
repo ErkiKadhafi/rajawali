@@ -3,6 +3,7 @@ package com.binarfinalproject.rajawali.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.SQLDelete;
@@ -28,6 +29,9 @@ public class ReservationDetails extends AuditModel {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
+
+    @OneToMany(mappedBy = "reservationDetails", fetch = FetchType.LAZY)
+    private List<Passenger> passengers;
 
     @Column(name = "use_travel_assurance")
     private boolean useTravelAssurance;

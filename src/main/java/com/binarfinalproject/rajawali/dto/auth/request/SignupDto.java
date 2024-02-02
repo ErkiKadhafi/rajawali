@@ -6,20 +6,18 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Set;
 @Setter
 @Getter
-public class CreateSignupRequest {
+public class SignupDto {
   @NotBlank
-  @Size(min = 3, max = 20)
-  private String username;
+  private String fullName;
 
   @NotBlank
-  @Size(max = 50)
   @Email
   private String email;
 
-  //private Set<String> role;
+  @NotBlank
+  private String phoneNumber;
 
   @NotBlank
   @Size(min = 6, max = 40)
@@ -27,8 +25,5 @@ public class CreateSignupRequest {
 
   @NotBlank
   @Size(min = 6, max = 40)
-  private String confirmation_password;
-
-  @NotBlank
-  private String handphone;
+  private String confirmationPassword;
 }

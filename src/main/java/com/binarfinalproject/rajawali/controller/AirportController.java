@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,7 @@ public class AirportController {
     AirportService airportService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> createAirport(@Valid @RequestBody CreateAirportDto request) {
         try {
             ResAirportDto newAirport = airportService.createAirport(request);
@@ -56,7 +58,8 @@ public class AirportController {
     }
 
     @PutMapping("/{airportId}")
-    public ResponseEntity<Object> updateProduct(@PathVariable UUID airportId,
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Object> updateAirport(@PathVariable UUID airportId,
             @Valid @RequestBody UpdateAirportDto request) {
         try {
             ResAirportDto updatedAirport = airportService.updateAirport(airportId, request);
@@ -133,6 +136,7 @@ public class AirportController {
     }
 
     @DeleteMapping("/{airportId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> deleteProduct(@PathVariable UUID airportId) {
         try {
             ResAirportDto deletedAirport = airportService.deleteAirport(airportId);

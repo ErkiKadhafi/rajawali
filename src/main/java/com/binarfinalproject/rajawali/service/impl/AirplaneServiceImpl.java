@@ -42,6 +42,16 @@ public class AirplaneServiceImpl implements AirplaneService {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "Airplane with code " + request.getAirplaneCode() + " is already exist.");
 
+        if (request.getEconomySeats() % request.getEconomySeatsPerCol() != 0)
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "The number of economy seats must be a multiple of the number of economy seats per column.");
+        if (request.getBusinessSeats() % request.getBusinessSeatsPerCol() != 0)
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "The number of business seats must be a multiple of the number of business seats per column.");
+        if (request.getFirstSeats() % request.getFirstSeatsPerCol() != 0)
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "The number of first seats must be a multiple of the number of first seats per column.");
+
         Airplane airplane = modelMapper.map(request, Airplane.class);
         Airplane newAirplane = airplaneRepository.save(airplane);
         ResAirplaneDto resAirplaneDto = modelMapper.map(newAirplane, ResAirplaneDto.class);
@@ -56,7 +66,7 @@ public class AirplaneServiceImpl implements AirplaneService {
                 request.getBusinessSeatsPerCol()));
         seatRepository.saveAll(generateSeats(newAirplane, Seat.ClassType.ECONOMY,
                 (request.getFirstSeats() / (request.getFirstSeatsPerCol() * 2))
-                        + (request.getEconomySeats() / (request.getEconomySeatsPerCol() * 2)),
+                        + (request.getBusinessSeats() / (request.getBusinessSeatsPerCol() * 2)),
                 request.getEconomySeats(),
                 request.getEconomySeatsPerCol()));
 
@@ -73,8 +83,7 @@ public class AirplaneServiceImpl implements AirplaneService {
                     "Airplane with id " + airplaneId + " is not found.");
 
         Airplane existedAirplane = airplaneOnDb.get();
-        if (request.getAirplaneCode().isPresent())
-            existedAirplane.setAirplaneCode(request.getAirplaneCode().get());
+        existedAirplane.setAirplaneCode(request.getAirplaneCode());
 
         ResAirplaneDto resAirplaneDto = modelMapper.map(airplaneRepository.save(existedAirplane),
                 ResAirplaneDto.class);
@@ -105,12 +114,6 @@ public class AirplaneServiceImpl implements AirplaneService {
         deletedAirplane.setDeletedAt(LocalDateTime.now());
         airplaneRepository.save(deletedAirplane);
 
-        // soft delete airplanes and it's seats
-        // deletedAirplane.getSeats().forEach(s -> {
-        //     s.setDeletedAt(LocalDateTime.now());
-        //     seatRepository.save(s);
-        //     seatRepository.delete(s);
-        // });
         airplaneRepository.delete(deletedAirplane);
         ResAirplaneDto resAirplaneDto = modelMapper.map(deletedAirplane, ResAirplaneDto.class);
 
@@ -124,7 +127,9 @@ public class AirplaneServiceImpl implements AirplaneService {
         return airplanes.map(d -> modelMapper.map(d, ResAirplaneDto.class));
     }
 
-    private List<Seat> generateSeats(Airplane airplane, Seat.ClassType classType, int seatNumberStart,
+    private List<Seat> generateSeats(Airplane airplane,
+            Seat.ClassType classType,
+            int seatNumberStart,
             Integer numberOfSeats,
             Integer numberOfSeatsPerCol) {
         List<Seat> seats = new ArrayList<>();

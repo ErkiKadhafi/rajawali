@@ -114,44 +114,40 @@ public class FlightServiceImpl implements FlightService {
                     "Flight with id " + flightId + " is not found.");
 
         Flight existedFlight = flightOnDb.get();
-        if (request.getSourceAirportId().isPresent()) {
-            Optional<Airport> sourceAirportOnDb = airportRepository
-                    .findById(UUID.fromString(request.getSourceAirportId().get()));
-            if (sourceAirportOnDb.isEmpty())
-                throw new ApiException(HttpStatus.NOT_FOUND,
-                        "Source airport with id " + request.getSourceAirportId().get() + " is not found.");
-            existedFlight.setSourceAirport(sourceAirportOnDb.get());
-        }
-        if (request.getDestinationAirportId().isPresent()) {
-            Optional<Airport> destAirportOnDb = airportRepository
-                    .findById(UUID.fromString(request.getDestinationAirportId().get()));
-            if (destAirportOnDb.isEmpty())
-                throw new ApiException(HttpStatus.NOT_FOUND,
-                        "Destination airport with id " + request.getDestinationAirportId().get() + " is not found.");
-            existedFlight.setDestinationAirport(destAirportOnDb.get());
-        }
-        if (request.getDestinationAirportId().isPresent()) {
-            Optional<Airplane> airplaneOnDb = airplaneRepository
-                    .findById(UUID.fromString(request.getAirplaneId().get()));
-            if (airplaneOnDb.isEmpty())
-                throw new ApiException(HttpStatus.NOT_FOUND,
-                        "Airplane with id " + request.getAirplaneId().get() + " is not found.");
-            existedFlight.setAirplane(airplaneOnDb.get());
-        }
+        Optional<Airport> sourceAirportOnDb = airportRepository
+                .findById(UUID.fromString(request.getSourceAirportId()));
+        if (sourceAirportOnDb.isEmpty())
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Source airport with id " + request.getSourceAirportId() + " is not found.");
+        existedFlight.setSourceAirport(sourceAirportOnDb.get());
+
+        Optional<Airport> destAirportOnDb = airportRepository
+                .findById(UUID.fromString(request.getDestinationAirportId()));
+        if (destAirportOnDb.isEmpty())
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Destination airport with id " + request.getDestinationAirportId() + " is not found.");
+        existedFlight.setDestinationAirport(destAirportOnDb.get());
+
+        Optional<Airplane> airplaneOnDb = airplaneRepository
+                .findById(UUID.fromString(request.getAirplaneId()));
+        if (airplaneOnDb.isEmpty())
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Airplane with id " + request.getAirplaneId() + " is not found.");
+        existedFlight.setAirplane(airplaneOnDb.get());
 
         if (existedFlight.getSourceAirport().getId().equals(existedFlight.getDestinationAirport().getId()))
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "Source and destination airport can't be the same ");
 
-        request.getSourceTerminal().ifPresent(existedFlight::setSourceTerminal);
-        request.getDestinationTerminal().ifPresent(existedFlight::setDestinationTerminal);
-        request.getDepartureDate().ifPresent(existedFlight::setDepartureDate);
-        request.getArrivalDate().ifPresent(existedFlight::setArrivalDate);
-        request.getEconomySeatsPrice().ifPresent(existedFlight::setEconomySeatsPrice);
-        request.getBusinessSeatsPrice().ifPresent(existedFlight::setBusinessSeatsPrice);
-        request.getFirstSeatsPrice().ifPresent(existedFlight::setFirstSeatsPrice);
-        request.getDiscount().ifPresent(existedFlight::setDiscount);
-        request.getPoints().ifPresent(existedFlight::setPoints);
+        existedFlight.setSourceTerminal(request.getSourceTerminal());
+        existedFlight.setDestinationTerminal(request.getDestinationTerminal());
+        existedFlight.setDepartureDate(request.getDepartureDate());
+        existedFlight.setArrivalDate(request.getArrivalDate());
+        existedFlight.setEconomySeatsPrice(request.getEconomySeatsPrice());
+        existedFlight.setBusinessSeatsPrice(request.getBusinessSeatsPrice());
+        existedFlight.setFirstSeatsPrice(request.getFirstSeatsPrice());
+        existedFlight.setDiscount(request.getDiscount());
+        existedFlight.setPoints(request.getPoints());
 
         ResFlightDto resFlightDto = modelMapper.map(flightRepository.save(existedFlight),
                 ResFlightDto.class);

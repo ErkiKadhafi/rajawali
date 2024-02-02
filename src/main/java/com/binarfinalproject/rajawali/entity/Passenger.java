@@ -3,6 +3,7 @@ package com.binarfinalproject.rajawali.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.SQLDelete;
@@ -29,6 +30,9 @@ public class Passenger extends AuditModel {
     @JoinColumn(name = "seat_id", nullable = false)
     private Seat seat;
 
+    @OneToMany(mappedBy = "passenger", fetch = FetchType.LAZY)
+    private List<PassengerMeal> passengerMeals;
+
     public enum GenderType {
         MAN, WOMAN
     }
@@ -36,6 +40,9 @@ public class Passenger extends AuditModel {
     public enum AgeType {
         ADULT, CHILD, INFANT
     }
+
+    @Column(name = "bagage_add_ons")
+    private Integer bagageAddOns;
 
     @Enumerated(EnumType.STRING)
     private GenderType genderType;

@@ -1,4 +1,4 @@
-package com.binarfinalproject.rajawali.dto.user.request;
+package com.binarfinalproject.rajawali.dto.auth.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,9 +9,9 @@ import lombok.Data;
 public class EnableUserDto {
     @NotBlank
     @Email
-    private String emailAddress;
+    private String email;
 
     @NotNull
-    private Integer otpCode;
+    private String otpCode;
 
 }
