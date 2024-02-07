@@ -3,14 +3,17 @@ package com.binarfinalproject.rajawali.service.impl;
 import com.binarfinalproject.rajawali.dto.auth.request.EnableUserDto;
 import com.binarfinalproject.rajawali.dto.auth.request.ForgotPasswordDto;
 import com.binarfinalproject.rajawali.dto.auth.request.ForgotPasswordSendOtpDto;
+import com.binarfinalproject.rajawali.dto.auth.request.RefreshTokenDto;
 import com.binarfinalproject.rajawali.dto.auth.request.SigninDto;
 import com.binarfinalproject.rajawali.dto.auth.request.SignupDto;
 import com.binarfinalproject.rajawali.dto.auth.response.ResAuthenticationDto;
 import com.binarfinalproject.rajawali.entity.Notification;
+import com.binarfinalproject.rajawali.entity.RefreshToken;
 import com.binarfinalproject.rajawali.entity.User;
 import com.binarfinalproject.rajawali.entity.Notification.NotificationType;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.repository.NotificationRepository;
+import com.binarfinalproject.rajawali.repository.RefreshTokenRepository;
 import com.binarfinalproject.rajawali.repository.RoleRepository;
 import com.binarfinalproject.rajawali.repository.UserRepository;
 import com.binarfinalproject.rajawali.service.AuthenticationService;
@@ -28,6 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -38,6 +42,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
     RoleRepository roleRepository;
@@ -66,7 +73,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    public String createOTP() {
+    private String createOTP() {
         Random random = new Random();
         StringBuilder oneTimePassword = new StringBuilder();
         for (int i = 0; i < otpLength; i++) {
@@ -74,6 +81,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             oneTimePassword.append(randomNumber);
         }
         return oneTimePassword.toString().trim();
+    }
+
+    private RefreshToken createRefreshToken(User user) {
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setToken(UUID.randomUUID().toString());
+        refreshToken.setExpiryDate(Instant.now().plusMillis(86400000 * 3)); // 3 days
+        refreshToken.setUser(user);
+
+        return refreshTokenRepository.saveAndFlush(refreshToken);
     }
 
     @Transactional(rollbackFor = { ApiException.class, Exception.class })
@@ -111,6 +127,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return response;
     }
 
+    @Transactional(rollbackFor = { ApiException.class, Exception.class })
     @Override
     public ResAuthenticationDto enableUser(EnableUserDto request) throws ApiException {
         Optional<User> userOnDb = userRepository.findByEmail(request.getEmail());
@@ -119,12 +136,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ApiException(HttpStatus.NOT_FOUND,
                     "User with email '" + request.getEmail() + "' doesn't exist");
 
+        if (userOnDb.get().isEnabled())
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Your account is already enabled.");
+
         if (LocalDateTime.now().isAfter(userOnDb.get().getOtpExpired()))
             throw new ApiException(HttpStatus.NOT_FOUND,
                     "OTP is expired!");
 
         if (userOnDb.get().getOtpUsed())
-            throw new ApiException(HttpStatus.NOT_FOUND,
+            throw new ApiException(HttpStatus.BAD_REQUEST,
                     "OTP is used!");
 
         if (!userOnDb.get().getOtp().equals(request.getOtpCode()))
@@ -134,10 +155,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User user = userOnDb.get();
         user.setOtpUsed(true);
         user.setIsEnabled(true);
-        userRepository.save(user);
+        User updatedUser = userRepository.saveAndFlush(user);
 
-        ResAuthenticationDto resAuthenticationDto = modelMapper.map(user, ResAuthenticationDto.class);
-        resAuthenticationDto.setAccessToken(jwtService.generateToken(user));
+        ResAuthenticationDto resAuthenticationDto = modelMapper.map(updatedUser, ResAuthenticationDto.class);
+        resAuthenticationDto.setAccessToken(jwtService.generateToken(updatedUser));
+        resAuthenticationDto.setRefreshToken(createRefreshToken(updatedUser).getToken());
+
         return resAuthenticationDto;
     }
 
@@ -160,8 +183,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                                     request.getEmail(), request.getPassword()));
             User user = userOnDb.get();
 
+            Optional<RefreshToken> refreshTokenOnDb = refreshTokenRepository.findByUserId(user.getId());
+            RefreshToken refreshToken = refreshTokenOnDb.isEmpty() ? createRefreshToken(user) : refreshTokenOnDb.get();
+
             ResAuthenticationDto resAuthenticationDto = modelMapper.map(user, ResAuthenticationDto.class);
             resAuthenticationDto.setAccessToken(jwtService.generateToken(user));
+            if (request.getRememberMe() != null && request.getRememberMe())
+                resAuthenticationDto.setRefreshToken(refreshToken.getToken());
 
             String dateFormatted = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now());
 
@@ -217,7 +245,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     "OTP is expired!");
 
         if (userOnDb.get().getOtpUsed())
-            throw new ApiException(HttpStatus.NOT_FOUND,
+            throw new ApiException(HttpStatus.BAD_REQUEST,
                     "OTP is used!");
 
         if (!userOnDb.get().getOtp().equals(request.getOtpCode()))
@@ -232,5 +260,28 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Map<String, String> response = new HashMap<String, String>();
         response.put("message", "Forgot password success, please sign in again!");
         return response;
+    }
+
+    @Override
+    public ResAuthenticationDto refreshToken(RefreshTokenDto request) throws ApiException {
+        Optional<RefreshToken> refreshTokenOnDb = refreshTokenRepository.findByToken(request.getRefreshToken());
+        if (refreshTokenOnDb.isEmpty())
+            throw new ApiException(HttpStatus.NOT_FOUND,
+                    "Refresh token '" + request.getRefreshToken() + "' is not found!. Please login again");
+
+        RefreshToken refreshToken = refreshTokenOnDb.get();
+        if (refreshToken.getExpiryDate().compareTo(Instant.now()) < 0) {
+            refreshTokenRepository.delete(refreshToken);
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Refresh token '" + request.getRefreshToken() + "' is already expired");
+        }
+
+        refreshTokenRepository.delete(refreshToken);
+        User user = refreshToken.getUser();
+        ResAuthenticationDto resAuthenticationDto = modelMapper.map(user, ResAuthenticationDto.class);
+        resAuthenticationDto.setRefreshToken(createRefreshToken(user).getToken());
+        resAuthenticationDto.setAccessToken(jwtService.generateToken(user));
+
+        return resAuthenticationDto;
     }
 }

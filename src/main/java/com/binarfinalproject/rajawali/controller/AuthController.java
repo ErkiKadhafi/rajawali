@@ -3,6 +3,7 @@ package com.binarfinalproject.rajawali.controller;
 import com.binarfinalproject.rajawali.dto.auth.request.EnableUserDto;
 import com.binarfinalproject.rajawali.dto.auth.request.ForgotPasswordDto;
 import com.binarfinalproject.rajawali.dto.auth.request.ForgotPasswordSendOtpDto;
+import com.binarfinalproject.rajawali.dto.auth.request.RefreshTokenDto;
 import com.binarfinalproject.rajawali.dto.auth.request.SigninDto;
 import com.binarfinalproject.rajawali.dto.auth.request.SignupDto;
 import com.binarfinalproject.rajawali.dto.auth.response.ResAuthenticationDto;
@@ -59,6 +60,20 @@ public class AuthController {
 
       return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
           "Login success!", response);
+    } catch (ApiException e) {
+      return ResponseMapper.generateResponseFailed(e.getStatus(), e.getMessage());
+    } catch (Exception e) {
+      return ResponseMapper.generateResponseFailed(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+  }
+
+  @PostMapping("/refresh-token")
+  public ResponseEntity<Object> refreshToken(@Valid @RequestBody RefreshTokenDto request) {
+    try {
+      ResAuthenticationDto response = authenticationService.refreshToken(request);
+
+      return ResponseMapper.generateResponseSuccess(HttpStatus.OK,
+          "Refresh token success!", response);
     } catch (ApiException e) {
       return ResponseMapper.generateResponseFailed(e.getStatus(), e.getMessage());
     } catch (Exception e) {

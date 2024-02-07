@@ -22,6 +22,8 @@ public class ResAuthenticationDto {
 
   private String accessToken;
 
+  private String refreshToken;
+
   private String type = "Bearer";
 
   private List<ResAuthenticationRoleDto> roles;

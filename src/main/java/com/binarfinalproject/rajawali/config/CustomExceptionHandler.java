@@ -20,6 +20,8 @@ import com.binarfinalproject.rajawali.util.ResponseMapper;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -63,6 +65,16 @@ public class CustomExceptionHandler {
         return ResponseMapper.generateResponseFailed(HttpStatus.BAD_REQUEST, "Max File 1 mb");
     }
 
+    @ExceptionHandler(value = { SignatureException.class })
+    public ResponseEntity<Object> handleUserServiceException(SignatureException ex, WebRequest request) {
+        return ResponseMapper.generateResponseFailed(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(value = { UnsupportedJwtException.class })
+    public ResponseEntity<Object> handleUnsupportedJwtTokenException(UnsupportedJwtException ex, WebRequest request) {
+        return ResponseMapper.generateResponseFailed(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
     @ExceptionHandler(value = { ExpiredJwtException.class })
     public ResponseEntity<Object> handleExpiredJwtException(ExpiredJwtException ex, WebRequest request) {
         return ResponseMapper.generateResponseFailed(HttpStatus.FORBIDDEN, ex.getMessage());
@@ -72,6 +84,12 @@ public class CustomExceptionHandler {
     public ResponseEntity<Object> handleMalformedJwtException(MalformedJwtException ex, WebRequest request) {
         return ResponseMapper.generateResponseFailed(HttpStatus.FORBIDDEN,
                 "Your JWT token is invalid : " + ex.getMessage());
+    }
+
+    @ExceptionHandler(value = { IllegalArgumentException.class })
+    public ResponseEntity<Object> handleIllegalArgumentException(MalformedJwtException ex, WebRequest request) {
+        return ResponseMapper.generateResponseFailed(HttpStatus.FORBIDDEN,
+                "JWT claims string is empty : " + ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
