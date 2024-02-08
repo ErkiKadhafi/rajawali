@@ -23,6 +23,7 @@ import com.binarfinalproject.rajawali.util.EmailTemplate;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,6 +39,15 @@ import java.util.*;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
+    @Value("${admin.qa.email}")
+    private String adminQAEmail;
+
+    @Value("${admin.qa.password}")
+    private String adminQAPassword;
+
+    @Value("${admin.qa.otp}")
+    private String adminQAOtp;
+
     private final int otpLength = 6;
 
     @Autowired
@@ -92,9 +102,44 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return refreshTokenRepository.saveAndFlush(refreshToken);
     }
 
+    private void createAccountQA() {
+        Optional<User> userOnDb = userRepository.findByEmail(adminQAEmail);
+        User user;
+        if (userOnDb.isPresent()) {
+            user = userOnDb.get();
+            user.setOtpUsed(false);
+            user.setIsEnabled(false);
+            userRepository.save(user);
+
+            Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUserId(user.getId());
+            refreshTokenRepository.delete(refreshToken.get());
+
+            return;
+        }
+
+        user = new User();
+        user.setRoles(Arrays.asList(roleRepository.findByName("ROLE_ADMIN").get()));
+        user.setFullName("Admin QA");
+        user.setEmail(adminQAEmail);
+        user.setPassword(passwordEncoder.encode(adminQAPassword));
+        user.setPhoneNumber("081250000000");
+        user.setOtp(adminQAOtp);
+        user.setOtpExpired(LocalDateTime.now().plusYears(1));
+        userRepository.save(user);
+    }
+
     @Transactional(rollbackFor = { ApiException.class, Exception.class })
     @Override
     public Map<String, String> registerUser(SignupDto request) throws ApiException {
+        Map<String, String> response = new HashMap<String, String>();
+        response.put("message", "Please check your email and enter the OTP!");
+
+        // only for qa
+        if (request.getEmail().equals(adminQAEmail)) {
+            createAccountQA();
+            return response;
+        }
+
         if (!Objects.equals(request.getConfirmationPassword(), request.getPassword()))
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "Password doesn't match! ");
@@ -115,15 +160,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setOtpExpired(LocalDateTime.now().plusMinutes(5));
         user.setRoles(Arrays.asList(roleRepository.findByName("ROLE_USER").get()));
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setIsEnabled(true);
+        user.setIsEnabled(false);
         userRepository.save(user);
 
         // send email
         String templateEmail = emailTemplate.getRegisterTemplate(request.getFullName(), userOtp);
         emailSender.sendEmail(request.getEmail(), "Register new account", templateEmail);
 
-        Map<String, String> response = new HashMap<String, String>();
-        response.put("message", "Please check your email and enter the OTP!");
         return response;
     }
 
@@ -219,7 +262,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         String userOtp = createOTP();
         User user = userOnDb.get();
-        user.setOtp(userOtp);
+        user.setOtp(request.getEmail().equals(adminQAEmail) ? adminQAOtp : userOtp);
         user.setOtpUsed(false);
         user.setOtpExpired(LocalDateTime.now().plusMinutes(5));
         userRepository.save(user);

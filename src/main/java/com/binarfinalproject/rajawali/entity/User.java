@@ -32,7 +32,7 @@ public class User extends AuditModel implements UserDetails {
         @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
         private Collection<Role> roles;
 
-        private Boolean isEnabled;
+        private Boolean isEnabled = false;
 
         @Column(name = "full_name")
         private String fullName;
