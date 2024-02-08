@@ -112,11 +112,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             userRepository.save(user);
 
             Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUserId(user.getId());
-            refreshTokenRepository.delete(refreshToken.get());
+            if (refreshToken.isPresent())
+                refreshTokenRepository.delete(refreshToken.get());
 
             return;
         }
-
         user = new User();
         user.setRoles(Arrays.asList(roleRepository.findByName("ROLE_ADMIN").get()));
         user.setFullName("Admin QA");
