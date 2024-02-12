@@ -132,11 +132,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public Map<String, String> registerUser(SignupDto request) throws ApiException {
         Map<String, String> response = new HashMap<String, String>();
-        response.put("message", "Please check your email and enter the OTP!");
 
         // only for qa
         if (request.getEmail().equals(adminQAEmail)) {
             createAccountQA();
+            response.put("message", "Please check your email and enter the OTP!");
             return response;
         }
 
@@ -145,16 +145,36 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     "Password doesn't match! ");
 
         Optional<User> userOnDb = userRepository.findByEmail(request.getEmail());
-        if (userOnDb.isPresent())
-            throw new ApiException(HttpStatus.BAD_REQUEST,
-                    "Email  '" + request.getEmail() + "' is already exist.");
+        if (userOnDb.isPresent()) {
+            User user = userOnDb.get();
+            if (user.getIsEnabled())
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "Your account is already exist and enabled, please login");
+
+            // OTP not expired
+            if (LocalDateTime.now().isBefore(user.getOtpExpired()))
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "Email '" + request.getEmail()
+                                + "' is already exist. Please check your email and enter the correct OTP!");
+
+            String userOtp = createOTP();
+            user.setOtp(userOtp);
+            user.setOtpExpired(LocalDateTime.now().plusMinutes(5));
+            userRepository.save(user);
+
+            // send email
+            String templateEmail = emailTemplate.getRegisterTemplate(request.getFullName(), userOtp);
+            emailSender.sendEmail(request.getEmail(), "Register new account", templateEmail);
+            response.put("message", "Success renewing your OTP, please check your email");
+            return response;
+        }
 
         boolean phoneNumberExist = userRepository.existByPhoneNumber(request.getPhoneNumber());
         if (phoneNumberExist)
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "Phone number  '" + request.getPhoneNumber() + "' is already exist.");
-        String userOtp = createOTP();
 
+        String userOtp = createOTP();
         User user = modelMapper.map(request, User.class);
         user.setOtp(userOtp);
         user.setOtpExpired(LocalDateTime.now().plusMinutes(5));
@@ -167,6 +187,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String templateEmail = emailTemplate.getRegisterTemplate(request.getFullName(), userOtp);
         emailSender.sendEmail(request.getEmail(), "Register new account", templateEmail);
 
+        response.put("message", "Please check your email and enter the OTP!");
         return response;
     }
 
