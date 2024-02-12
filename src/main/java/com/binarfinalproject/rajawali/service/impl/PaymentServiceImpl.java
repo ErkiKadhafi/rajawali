@@ -24,6 +24,8 @@ import com.binarfinalproject.rajawali.repository.PaymentRepository;
 import com.binarfinalproject.rajawali.repository.ReservationRepository;
 import com.binarfinalproject.rajawali.repository.UserRepository;
 import com.binarfinalproject.rajawali.service.PaymentService;
+import com.binarfinalproject.rajawali.util.EmailSender;
+import com.binarfinalproject.rajawali.util.EmailTemplate;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
@@ -41,6 +43,12 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    EmailSender emailSender;
+
+    @Autowired
+    EmailTemplate emailTemplate;
 
     public void createPaymentNotification(User user, NotificationType notificationType) {
         String dateFormatted = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now());
@@ -123,6 +131,13 @@ public class PaymentServiceImpl implements PaymentService {
         ResPaymentDto resPaymentDto = modelMapper.map(updatedPayment, ResPaymentDto.class);
         resPaymentDto.setPaymentStatus("Purchase Pending");
 
+        // send email
+        String templateEmail = emailTemplate.notifyPaymentIsPaid(
+                payment.getReservation().getEmail(),
+                payment.getReservation().getId().toString(),
+                "/transaction/" + payment.getReservation().getId());
+        emailSender.sendEmail(payment.getReservation().getEmail(), "Payment is success", templateEmail);
+
         return resPaymentDto;
     }
 
@@ -148,6 +163,13 @@ public class PaymentServiceImpl implements PaymentService {
         ResPaymentDto resPaymentDto = modelMapper.map(updatedPayment, ResPaymentDto.class);
         resPaymentDto.setPaymentStatus("Purchase Successful");
 
+        // send email
+        String templateEmail = emailTemplate.notifyPaymentIsPaid(
+                payment.getReservation().getEmail(),
+                payment.getReservation().getId().toString(),
+                "/transaction/" + payment.getReservation().getId());
+        emailSender.sendEmail(payment.getReservation().getEmail(), "Payment is approved", templateEmail);
+
         return resPaymentDto;
     }
 
@@ -172,6 +194,13 @@ public class PaymentServiceImpl implements PaymentService {
 
         ResPaymentDto resPaymentDto = modelMapper.map(updatedPayment, ResPaymentDto.class);
         resPaymentDto.setPaymentStatus("Payment Not Valid");
+
+        // send email
+        String templateEmail = emailTemplate.notifyPaymentIsPaid(
+                payment.getReservation().getEmail(),
+                payment.getReservation().getId().toString(),
+                "/transaction/" + payment.getReservation().getId());
+        emailSender.sendEmail(payment.getReservation().getEmail(), "Payment is rejected", templateEmail);
 
         return resPaymentDto;
     }
