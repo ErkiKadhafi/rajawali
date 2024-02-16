@@ -22,12 +22,19 @@ class ResReservationUser {
 }
 
 @Data
+class ResReservationPayment {
+    private String id;
+}
+
+@Data
 public class ResReservationDto {
     private String id;
 
     private ResReservationUser user;
 
     private ResReservationPromo promo;
+
+    private ResReservationPayment payment;
 
     private String classType;
 

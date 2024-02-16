@@ -23,8 +23,6 @@ class ResListReservationUser {
 @Data
 class ResListReservationPayment {
     private String id;
-
-    private Boolean isPaid;
 }
 
 @Data
@@ -34,6 +32,8 @@ public class ResListReservationDto {
     private ResListReservationPromo promo;
 
     private ResListReservationUser user;
+
+    private ResListReservationPayment payment;
 
     private String paymentStatus;
 
