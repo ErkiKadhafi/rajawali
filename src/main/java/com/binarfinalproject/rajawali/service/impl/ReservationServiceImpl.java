@@ -321,10 +321,10 @@ public class ReservationServiceImpl implements ReservationService {
                     Payment payment = reservationEntity.getPayment();
                     if (payment != null) {
                         if (!payment.getIsPaid()) {
-                            if (payment.getReservation().getExpiredAt().isAfter(LocalDateTime.now()))
-                                resListReservationDto.setPaymentStatus("Waiting for Payment");
-                            else
+                            if (payment.getReservation().getExpiredAt().isBefore(LocalDateTime.now()))
                                 resListReservationDto.setPaymentStatus("Purchase Canceled");
+                            else
+                                resListReservationDto.setPaymentStatus("Waiting for Payment");
                         } else if (payment.getIsApproved() == null)
                             resListReservationDto.setPaymentStatus("Purchase Pending");
                         else if (payment.getIsApproved() == true)
@@ -352,10 +352,10 @@ public class ReservationServiceImpl implements ReservationService {
         Payment payment = reservationOnDb.get().getPayment();
         if (payment != null) {
             if (!payment.getIsPaid()) {
-                if (payment.getReservation().getExpiredAt().isAfter(LocalDateTime.now()))
-                    resReservationDto.setPaymentStatus("Waiting for Payment");
-                else
+                if (payment.getReservation().getExpiredAt().isBefore(LocalDateTime.now()))
                     resReservationDto.setPaymentStatus("Purchase Canceled");
+                else
+                    resReservationDto.setPaymentStatus("Waiting for Payment");
             } else if (payment.getIsApproved() == null)
                 resReservationDto.setPaymentStatus("Purchase Pending");
             else if (payment.getIsApproved() == true)
