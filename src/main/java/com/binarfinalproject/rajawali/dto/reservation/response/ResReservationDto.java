@@ -55,4 +55,6 @@ public class ResReservationDto {
     private List<ResFlightDetailsDto> flightDetailList;
 
     private LocalDateTime expiredAt;
+
+    private LocalDateTime createdAt;
 }

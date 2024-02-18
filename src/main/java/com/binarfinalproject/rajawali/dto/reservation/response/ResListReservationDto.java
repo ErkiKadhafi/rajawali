@@ -50,4 +50,6 @@ public class ResListReservationDto {
     private Double totalPrice;
 
     private LocalDateTime expiredAt;
+
+    private LocalDateTime createdAt;
 }
