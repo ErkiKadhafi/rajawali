@@ -23,6 +23,8 @@ class ResListReservationUser {
 @Data
 class ResListReservationPayment {
     private String id;
+
+    private String method;
 }
 
 @Data

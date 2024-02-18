@@ -24,6 +24,8 @@ class ResReservationUser {
 @Data
 class ResReservationPayment {
     private String id;
+
+    private String method;
 }
 
 @Data
