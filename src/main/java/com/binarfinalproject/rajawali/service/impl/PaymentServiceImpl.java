@@ -14,13 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 import com.binarfinalproject.rajawali.dto.payment.request.CreatePaymentDto;
 import com.binarfinalproject.rajawali.dto.payment.response.ResPaymentDto;
 import com.binarfinalproject.rajawali.entity.Notification;
+import com.binarfinalproject.rajawali.entity.Passenger;
 import com.binarfinalproject.rajawali.entity.Notification.NotificationType;
 import com.binarfinalproject.rajawali.entity.Payment;
 import com.binarfinalproject.rajawali.entity.Reservation;
+import com.binarfinalproject.rajawali.entity.ReservationDetails;
 import com.binarfinalproject.rajawali.entity.User;
 import com.binarfinalproject.rajawali.exception.ApiException;
 import com.binarfinalproject.rajawali.repository.NotificationRepository;
+import com.binarfinalproject.rajawali.repository.PassengerRepository;
 import com.binarfinalproject.rajawali.repository.PaymentRepository;
+import com.binarfinalproject.rajawali.repository.ReservationDetailsRepository;
 import com.binarfinalproject.rajawali.repository.ReservationRepository;
 import com.binarfinalproject.rajawali.repository.UserRepository;
 import com.binarfinalproject.rajawali.service.PaymentService;
@@ -43,6 +47,12 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    ReservationDetailsRepository reservationDetailsRepository;
+
+    @Autowired
+    PassengerRepository passengerRepository;
 
     @Autowired
     EmailSender emailSender;
@@ -173,6 +183,7 @@ public class PaymentServiceImpl implements PaymentService {
         return resPaymentDto;
     }
 
+    @Transactional(rollbackFor = { ApiException.class, Exception.class })
     @Override
     public ResPaymentDto rejectPayment(UUID paymentId) throws ApiException {
         Optional<Payment> paymentOnDb = paymentRepository.findById(paymentId);
@@ -191,6 +202,19 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (updatedPayment.getReservation().getUser() != null)
             createPaymentNotification(updatedPayment.getReservation().getUser(), NotificationType.REJECT_PAYMENT);
+
+        // delete all the data that connects to the reservation
+        for (ReservationDetails rd : updatedPayment.getReservation().getReservationDetails()) {
+            for (Passenger p : rd.getPassengers()) {
+                p.setDeletedAt(LocalDateTime.now());
+                Passenger deletedPassenger = passengerRepository.saveAndFlush(p);
+                passengerRepository.delete(deletedPassenger);
+            }
+            rd.setDeletedAt(LocalDateTime.now());
+            ReservationDetails deletedReservationDetails = reservationDetailsRepository
+                    .saveAndFlush(rd);
+            reservationDetailsRepository.delete(deletedReservationDetails);
+        }
 
         ResPaymentDto resPaymentDto = modelMapper.map(updatedPayment, ResPaymentDto.class);
         resPaymentDto.setPaymentStatus("Payment Not Valid");

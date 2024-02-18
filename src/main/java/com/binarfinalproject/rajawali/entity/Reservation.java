@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.SQLDelete;
@@ -33,6 +34,9 @@ public class Reservation extends AuditModel {
 
     @OneToOne(mappedBy = "reservation", fetch = FetchType.EAGER)
     private Payment payment;
+
+    @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY)
+    private List<ReservationDetails> reservationDetails;
 
     public enum GenderType {
         MAN, WOMAN
